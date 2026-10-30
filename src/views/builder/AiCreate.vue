@@ -36,7 +36,7 @@
               <div class="ac-hero-logo">
                 <iframe
                   class="ac-fluid-orb"
-                  src="/liquid-orb.html"
+                  :src="liquidOrbSrc"
                   title="动态流体球"
                   aria-hidden="true"
                   tabindex="-1"
@@ -645,6 +645,7 @@ import {
 } from '@/mock/aiCreate'
 
 const router = useRouter()
+const liquidOrbSrc = `${import.meta.env.BASE_URL}liquid-orb.html`
 
 // 创建流程仍为 5 阶段（需求描述 / 业务分析 / 业务系统蓝图 / 应用包生成 / 搭建完成），
 // 但 2026-10-11 起**不再在页面顶部展示步骤条**（原 5 节点流程指示器已去掉）：
