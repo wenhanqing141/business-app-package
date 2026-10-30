@@ -1,0 +1,355 @@
+@import './variables.css';
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', 'Helvetica Neue', Arial,
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.5715;
+  color: var(--text-1);
+  background: var(--page-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+::selection {
+  background: var(--brand-7);
+  color: var(--brand-1);
+}
+
+/* ---------- 悬浮式滚动条（Element Plus） ----------
+ * 页面滚动区统一使用 el-scrollbar：其自绘 bar 绝对定位，不占内容布局宽度。
+ * 容器尺寸和内容间距由各页面的 .el-scrollbar__view 维护。
+ */
+.el-scrollbar__bar.is-vertical {
+  top: 4px;
+  right: 4px;
+  bottom: 4px;
+  width: 6px;
+  z-index: 2;
+}
+.el-scrollbar__thumb {
+  background: rgba(87, 88, 94, 0.35);
+  border-radius: 9999px;
+  transition: background-color 0.16s ease;
+}
+.el-scrollbar__thumb:hover {
+  background: rgba(87, 88, 94, 0.56);
+}
+
+/* ============================================================
+ * Element Plus 组件全局微调（只调视觉，不动结构）
+ * ============================================================ */
+
+/* 按钮：8px 圆角（设计稿）、字重略提、过渡更柔 */
+.el-button {
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.el-button:focus-visible {
+  outline: 2px solid var(--brand-5);
+  outline-offset: 1px;
+}
+/* 圆形 / 文字按钮不套用 8px 圆角 */
+.el-button.is-circle {
+  border-radius: 50%;
+}
+.el-button.is-text,
+.el-button.is-link {
+  border-radius: var(--radius-sm);
+}
+/* 主按钮：设计稿为纯色实心、无边框 */
+.el-button--primary:not(.is-plain):not(.is-text):not(.is-link) {
+  --el-button-bg-color: var(--color-primary);
+  --el-button-border-color: var(--color-primary);
+  --el-button-hover-bg-color: var(--color-primary-hover);
+  --el-button-hover-border-color: var(--color-primary-hover);
+  --el-button-active-bg-color: var(--color-primary-active);
+  --el-button-active-border-color: var(--color-primary-active);
+}
+
+/* 输入类控件：描边收敛到中性灰阶，聚焦阴影更轻 */
+.el-input__wrapper,
+.el-textarea__inner {
+  box-shadow: 0 0 0 1px var(--border-3) inset;
+}
+.el-input__wrapper:hover,
+.el-textarea__inner:hover,
+.el-select__wrapper:hover {
+  box-shadow: 0 0 0 1px var(--color-border-brand) inset;
+}
+.el-input.is-active .el-input__wrapper,
+.el-input__wrapper.is-focus,
+.el-textarea__inner:focus {
+  box-shadow: 0 0 0 1px var(--border-3) inset;
+}
+
+/* Select: selected values use the primary text token across single and
+ * multiple selects; placeholders remain intentionally muted. */
+.el-select__selected-item,
+.el-select__tags-text,
+.el-select__tags .el-tag__content {
+  color: var(--text-1);
+}
+.el-select__placeholder.is-transparent {
+  color: var(--text-4);
+}
+.el-select__placeholder:not(.is-transparent) {
+  color: var(--text-1);
+}
+
+/* 弹窗 / 确认框：12px 圆角 + 柔和重影。
+ * 弹窗正文在 600px 高度上限内独立滚动，滚动条延续项目统一的 6px 规范。 */
+.el-dialog {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 32px);
+  max-height: min(600px, calc(100dvh - 32px));
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-4);
+  overflow: hidden;
+}
+.el-dialog__header {
+  flex: 0 0 auto;
+  padding: 18px 20px 14px;
+  margin-right: 32px;
+}
+.el-dialog__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-1);
+}
+.el-dialog__body {
+  flex: 1 1 auto;
+  min-height: 0;
+  color: var(--text-2);
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(87, 88, 94, 0.35) transparent;
+}
+.el-dialog__body::-webkit-scrollbar {
+  width: 6px;
+}
+.el-dialog__body::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background: rgba(87, 88, 94, 0.35);
+}
+.el-dialog__body::-webkit-scrollbar-thumb:hover {
+  background: rgba(87, 88, 94, 0.56);
+}
+.el-dialog__footer {
+  flex: 0 0 auto;
+}
+.el-message-box {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-4);
+  border: none;
+}
+.el-message-box__title {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 抽屉：头部更克制 */
+.el-drawer__header {
+  margin-bottom: 0;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-1);
+  color: var(--text-1);
+  font-weight: 600;
+}
+
+/* 浮层（日期等）：12px 圆角 + 柔影 + 细边 */
+.el-popper.is-light,
+.el-popper.is-pure {
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-3);
+  border: 1px solid var(--border-2);
+}
+.el-popper.is-light .el-popper__arrow::before {
+  border-color: var(--border-2);
+}
+
+/* 项目级文字提示：统一通过 <AppTooltip /> 使用。 */
+.app-tooltip.el-popper {
+  border-radius: 10px;
+}
+/*
+ * Element Plus 下拉菜单 / 下拉列表：HeroUI 视觉基准。
+ * 默认态无底色；hover、focus、已选态才显示中性灰底。Popper 默认箭头隐藏，
+ * 再用 -8px 抵消 Element 为箭头保留的空间，使可见间距稳定为 4px。
+ */
+.el-dropdown__popper.el-popper,
+.el-select__popper.el-popper {
+  border: 1px solid #e4e4e7;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 16px 34px rgba(24, 24, 27, 0.16);
+}
+.el-dropdown__popper.el-popper {
+  padding: 6px;
+}
+/* Select uses Element Plus `fit-input-width`: padding belongs to its inner
+ * dropdown so the outer popper remains exactly as wide as the trigger. */
+.el-select__popper.el-popper {
+  padding: 0;
+}
+.el-dropdown__popper .el-popper__arrow,
+.el-select__popper .el-popper__arrow {
+  display: none;
+}
+.el-dropdown__popper[data-popper-placement^='bottom'],
+.el-select__popper[data-popper-placement^='bottom'] {
+  margin-top: -8px;
+}
+.el-dropdown__popper[data-popper-placement^='top'],
+.el-select__popper[data-popper-placement^='top'] {
+  margin-bottom: -8px;
+}
+.el-dropdown__popper[data-popper-placement^='right'],
+.el-select__popper[data-popper-placement^='right'] {
+  margin-left: -8px;
+}
+.el-dropdown__popper[data-popper-placement^='left'],
+.el-select__popper[data-popper-placement^='left'] {
+  margin-right: -8px;
+}
+.el-dropdown__popper .el-dropdown-menu {
+  min-width: 208px;
+  padding: 0;
+}
+.el-select__popper .el-select-dropdown {
+  box-sizing: border-box;
+  padding: 6px;
+}
+.el-dropdown__popper .el-dropdown-menu__item,
+.el-select__popper .el-select-dropdown__item {
+  min-height: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0 14px;
+  border-radius: 10px;
+  color: #18181b;
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  line-height: 40px;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease;
+}
+.el-dropdown__popper .el-dropdown-menu__item:hover,
+.el-dropdown__popper .el-dropdown-menu__item:focus,
+.el-select__popper .el-select-dropdown__item:hover,
+.el-select__popper .el-select-dropdown__item.is-hovering,
+.el-select__popper .el-select-dropdown__item.is-selected {
+  background: #eeeeef;
+  color: #18181b;
+}
+.el-dropdown__popper .el-dropdown-menu__item.is-danger,
+.el-dropdown__popper .el-dropdown-menu__item.danger-item {
+  color: #ff3b40;
+}
+.el-dropdown__popper .el-dropdown-menu__item.is-danger:hover,
+.el-dropdown__popper .el-dropdown-menu__item.is-danger:focus,
+.el-dropdown__popper .el-dropdown-menu__item.danger-item:hover,
+.el-dropdown__popper .el-dropdown-menu__item.danger-item:focus {
+  color: #ff3b40;
+}
+
+/* 卡片：12px 圆角 + 细边 + 轻影 */
+.el-card {
+  border-radius: var(--radius-lg);
+  border-color: var(--border-2);
+  box-shadow: var(--shadow-1);
+}
+
+/* 表格：表头浅灰、行高略舒展、hover 中性浅底 */
+.el-table th.el-table__cell {
+  background: var(--fill-4);
+  color: var(--text-2);
+  font-weight: 600;
+}
+.el-table td.el-table__cell,
+.el-table th.el-table__cell.is-leaf {
+  border-bottom-color: var(--border-1);
+}
+.el-table--border .el-table__cell {
+  border-right-color: var(--border-1);
+}
+
+/* 标签：小圆角 */
+.el-tag {
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+}
+
+/* Tabs：激活字重 */
+.el-tabs__item.is-active {
+  font-weight: 600;
+}
+
+/* 分页 */
+.el-pagination {
+  font-weight: 400;
+}
+
+/* 轻提示：圆角与阴影 */
+.el-message {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-3);
+  border: none;
+  padding: 10px 16px;
+}
+
+/* 空状态 / 加载文案弱化 */
+.el-empty__description p {
+  color: var(--text-3);
+  font-size: 13px;
+}
+
+/* 表单标签 */
+.el-form-item__label {
+  color: var(--text-2);
+}
+
+/* 删除二次确认统一使用 Figma 错误状态色，不复用蓝色主操作。 */
+.el-message-box__btns .el-button.delete-confirm-button {
+  --el-button-bg-color: var(--color-status-error);
+  --el-button-border-color: var(--color-status-error);
+  --el-button-hover-bg-color: color-mix(in srgb, var(--color-status-error) 85%, #000);
+  --el-button-hover-border-color: color-mix(in srgb, var(--color-status-error) 85%, #000);
+  --el-button-active-bg-color: color-mix(in srgb, var(--color-status-error) 75%, #000);
+  --el-button-active-border-color: color-mix(in srgb, var(--color-status-error) 75%, #000);
+}
+/* ============================================================
+ * 设计稿图标（AppIcon）作可点击动作图标时的焦点环
+ * 这些 svg 常被 el-tooltip 包成触发器并取得焦点，对话框关闭后
+ * Element Plus 会把焦点还给触发器，浏览器随即描一圈系统强调色焦点框
+ * （macOS 强调色为黄色时即表现为「图标被黄框包住」）。此处统一去掉。
+ * ============================================================ */
+svg.app-icon:focus,
+svg.app-icon:focus-visible,
+svg.app-icon:active {
+  outline: none;
+}

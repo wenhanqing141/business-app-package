@@ -1,0 +1,383 @@
+/* ============================================================
+ * 业务应用包 Demo · 全局设计 Token
+ * 依据：context/workspace/业务应用包-20260914/figma 设计稿（2026-09-30）
+ *       色值 / 尺寸取自设计稿像素采样，见 figma/02-设计规范提取-20261004.md
+ * 取向：品牌蓝 #0047FF + 浅蓝白底 #F5F8FF、8/12px 圆角、极轻阴影
+ * 约定：业务变量 --brand-* / --text-* / --border-* / --fill-* / --shadow-*
+ *       同时映射覆盖 Element Plus 的 --el-* 变量，全站组件自动换肤
+ * ============================================================ */
+:root {
+  /* ---------- 布局尺寸（设计稿实测） ---------- */
+  --layout-aside-width: 260px; /* 通用后台侧边栏展开宽 */
+  --layout-aside-collapsed-width: 64px;
+  --layout-aside-logo-height: 56px;
+  --layout-tabs-height: 40px;
+  --layout-main-bg: #f5f8ff;
+  --layout-main-padding: 16px;
+  --aside-personal-center-height: 64px;
+  --tab-active-line-height: 2px;
+
+  /* 搭建侧 / 应用后台（设计稿页面 1–3） */
+  --builder-header-height: 64px; /* 顶栏高 */
+  --builder-aside-width: 240px; /* 左栏宽（含 1px 右边框） */
+  --builder-panel-radius: 12px; /* 右侧内容面板圆角（设计稿 rx=11.5） */
+  --builder-card-radius: 16px; /* 面板内卡片 / 分组卡圆角（设计稿 rx=15.5） */
+  --builder-panel-gap: 16px; /* 面板右 / 下外边距 */
+  --builder-row-height: 40px; /* 树行 / 导航行高 */
+  --builder-menu-row-gap: 2px;
+  --builder-nav-row-height: 40px; /* 应用后台左导航行高 */
+
+  /* ---------- 品牌色（设计稿主色 #0047FF） ---------- */
+  --color-primary: #0047ff;
+  --color-primary-hover: #4075ff;
+  --color-primary-active: #0038cc;
+  --color-primary-light: #e5edff;
+  --brand-1: #0047ff; /* 品牌主色 */
+  --brand-2: #0038cc; /* 深色 / 按压 */
+  --brand-3: #4075ff; /* 悬停 */
+  --brand-4: #6690ff;
+  --brand-5: #99b5ff;
+  --brand-6: #b3c8ff;
+  --brand-7: #e5edff; /* 浅蓝底：选中 / 提示条 */
+  --brand-8: #f5f8ff; /* 更浅蓝底：页面 / 顶栏 / 左栏 */
+
+  /* ---------- 功能色（设计稿危险 #EC3327 / 警告 #FF8333） ---------- */
+  --color-success: #4dd655;
+  --color-warning: #ff8333;
+  --color-danger: #ec3327;
+  --color-info: #0047ff;
+  --success-1: #4dd655;
+  --success-2: #3dab44;
+  --success-7: #dbf7dd;
+  --success-8: #edfbee;
+  --warning-1: #ff8333;
+  --warning-2: #cc6929;
+  --warning-7: #ffddc6;
+  --warning-8: #fff3eb;
+  --danger-1: #ec3327;
+  --danger-2: #bd2921;
+  --danger-7: #f8d1ce;
+  --danger-8: #fdeae9;
+
+  /* ---------- 中性灰阶 · 文字（设计稿采样） ---------- */
+  --color-text-primary: #12141a;
+  --color-text-secondary: #2f3137;
+  --color-text-tertiary: #57585e;
+  --color-text-disabled: #a6a8ae;
+  --color-text-regular: #2f3137;
+  --text-1: #12141a; /* 主文字 / 标题 */
+  --text-2: #2f3137; /* 常规文字 */
+  --text-3: #57585e; /* 次要文字 / 说明 */
+  --text-4: #a6a8ae; /* 占位 / 弱化 */
+  --text-disabled: #a6a8ae;
+  --icon-1: #83868c; /* 常规图标 */
+  --icon-2: #c5c6c9; /* 弱化 / 禁用图标 */
+  --icon-caret: #8fa1c7; /* 搭建页树行展开箭头（设计稿实测） */
+  --icon-sort-exit: #ff4c26; /* 排序态「退出排序」图标（设计稿实测） */
+
+  /* ---------- 中性灰阶 · 描边 / 背景 ---------- */
+  --color-border: #e6e8eb;
+  --color-border-light: #eaeaeb;
+  --color-bg-page: #fcfcfd;
+  --color-bg-card: #ffffff;
+  --color-bg-hover: #f3f4f5;
+  --border-1: #eaeaeb; /* 浅分割 / 表头 */
+  --border-2: #e6e8eb; /* 常规描边 / 卡片边 */
+  --border-3: #e6e8eb; /* 输入框 / 控件描边 */
+  --border-4: #c5c6c9;
+  --fill-1: #ffffff; /* 卡片 / 弹窗 / 输入框背景 */
+  --fill-2: #f3f4f5; /* 列表项 / 菜单项 hover */
+  --fill-3: #f3f4f5; /* 选中浅灰底 / 气泡 */
+  --fill-4: #fafbfc; /* 次级卡片底 / 表头背景 */
+  --page-bg: #f5f8ff;
+
+  /* ---------- 圆角（设计稿：卡片 12 / 控件 8 / 标签 4） ---------- */
+  --radius-xs: 4px; /* 小标签（设计稿 36×20 rx=4） */
+  --radius-sm: 4px;
+  --radius-md: 8px; /* 按钮 / 输入框 / 树行 / 导航项（设计稿 rx=7.5~8） */
+  --radius-lg: 16px; /* 卡片（设计稿 526×95 rx=15.5） */
+  --radius-xl: 16px; /* 大面板 / 弹窗 */
+  --radius-round: 999px;
+
+  /* ---------- 阴影（设计稿整体极轻） ---------- */
+  --shadow-sm: 0 1px 2px rgba(18, 20, 26, 0.04);
+  --shadow-md: 0 2px 8px rgba(18, 20, 26, 0.06);
+  --shadow-lg: 0 8px 24px rgba(18, 20, 26, 0.1);
+  --shadow-none: none;
+  --shadow-1: 0 1px 2px rgba(18, 20, 26, 0.04);
+  --shadow-2: 0 2px 8px rgba(18, 20, 26, 0.06);
+  --shadow-3: 0 8px 24px rgba(18, 20, 26, 0.1);
+  --shadow-4: 0 8px 24px rgba(18, 20, 26, 0.1);
+
+  /* ---------- 间距（4px 基础单位） ---------- */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+
+  /* ---------- 字重 ---------- */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 600;
+
+  /* ---------- 动效 ---------- */
+  --motion-hover: 0.2s ease;
+  --motion-modal: 0.3s ease-out;
+
+  /* ============================================================
+   * Element Plus 主题变量覆盖（本文件经 index.css 在 element-plus
+   * 全量样式之后导入，可直接覆盖生效）
+   * ============================================================ */
+
+  /* 品牌主色（light-N = 与白色混色，深色沿用设计稿悬停 / 按压） */
+  --el-color-primary: #0047ff;
+  --el-color-primary-light-3: #4075ff; /* 悬停 */
+  --el-color-primary-light-5: #6690ff;
+  --el-color-primary-light-7: #99b5ff;
+  --el-color-primary-light-8: #b3c8ff;
+  --el-color-primary-light-9: #e5edff; /* 浅底 */
+  --el-color-primary-dark-2: #0038cc; /* 按压 */
+
+  /* 成功（设计稿未出现，沿用原值） */
+  --el-color-success: #4dd655;
+  --el-color-success-light-3: #82e288;
+  --el-color-success-light-5: #a6eaaa;
+  --el-color-success-light-7: #c9f3cc;
+  --el-color-success-light-8: #dbf7dd;
+  --el-color-success-light-9: #edfbee;
+  --el-color-success-dark-2: #3dab44;
+
+  /* 警告 */
+  --el-color-warning: #ff8333;
+  --el-color-warning-light-3: #ffa266;
+  --el-color-warning-light-5: #ffb98c;
+  --el-color-warning-light-7: #ffddc6;
+  --el-color-warning-light-8: #ffe9db;
+  --el-color-warning-light-9: #fff3eb;
+  --el-color-warning-dark-2: #cc6929;
+
+  /* 危险 / 错误 */
+  --el-color-danger: #ec3327;
+  --el-color-danger-light-3: #f27068;
+  --el-color-danger-light-5: #f69994;
+  --el-color-danger-light-7: #f8c2bf;
+  --el-color-danger-light-8: #f8d1ce;
+  --el-color-danger-light-9: #fdeae9;
+  --el-color-danger-dark-2: #bd2921;
+  --el-color-error: #ec3327;
+  --el-color-error-light-3: #f27068;
+  --el-color-error-light-5: #f69994;
+  --el-color-error-light-7: #f8c2bf;
+  --el-color-error-light-8: #f8d1ce;
+  --el-color-error-light-9: #fdeae9;
+  --el-color-error-dark-2: #bd2921;
+
+  /* 信息（复用主色） */
+  --el-color-info: #0047ff;
+  --el-color-info-light-3: #4075ff;
+  --el-color-info-light-5: #6690ff;
+  --el-color-info-light-7: #99b5ff;
+  --el-color-info-light-8: #b3c8ff;
+  --el-color-info-light-9: #e5edff;
+  --el-color-info-dark-2: #0038cc;
+
+  /* 文字 */
+  --el-text-color-primary: #12141a;
+  --el-text-color-regular: #2f3137;
+  --el-text-color-secondary: #57585e;
+  --el-text-color-placeholder: #a6a8ae;
+  --el-text-color-disabled: #a6a8ae;
+
+  /* 描边 */
+  --el-border-color: #e6e8eb;
+  --el-border-color-hover: #c5c6c9;
+  --el-border-color-light: #eaeaeb;
+  --el-border-color-lighter: #eaeaeb;
+  --el-border-color-extra-lighter: #f5f8ff;
+  --el-border-color-dark: #c5c6c9;
+  --el-border-color-darker: #a6a8ae;
+
+  /* 填充 */
+  --el-fill-color: #f3f4f5;
+  --el-fill-color-light: #f5f8ff;
+  --el-fill-color-lighter: #fafbfc;
+  --el-fill-color-extra-lighter: #fafbfc;
+  --el-fill-color-blank: #ffffff;
+  --el-fill-color-dark: #eaeaeb;
+
+  /* 背景 */
+  --el-bg-color: #ffffff;
+  --el-bg-color-page: #f5f8ff;
+  --el-bg-color-overlay: #ffffff;
+
+  /* 遮罩 */
+  --el-overlay-color-lighter: rgba(18, 20, 26, 0.45);
+
+  /* 圆角（设计稿：控件 8px、卡片 12px、小标签 4px） */
+  --el-border-radius-base: 8px;
+  --el-border-radius-small: 4px;
+  --el-border-radius-round: 999px;
+
+  /* 阴影 */
+  --el-box-shadow: 0 2px 8px rgba(18, 20, 26, 0.06);
+  --el-box-shadow-light: 0 1px 2px rgba(18, 20, 26, 0.04);
+  --el-box-shadow-lighter: 0 1px 2px rgba(18, 20, 26, 0.04);
+  --el-box-shadow-dark: 0 8px 24px rgba(18, 20, 26, 0.1);
+
+  /* 字号（正文 14px） */
+  --el-font-size-base: 14px;
+}
+
+/* ============================================================
+ * Figma variable baseline
+ * Source: 13.数字人&速课_组件库_Web端 / local variables
+ * Keep the legacy aliases above for compatibility; this block is the
+ * canonical semantic layer consumed by new Vue + Element Plus screens.
+ * ============================================================ */
+:root {
+  /* Figma brand / auxiliary / gray / status colors */
+  --color-primary: #0057ff;
+  --color-primary-hover: #0057ffcc;
+  --color-primary-active: #0047d9;
+  --color-primary-focus: #0057ff66;
+  --color-primary-light: #e5eeff;
+  --color-primary-soft: #0057ff0d;
+
+  --brand-1: #0057ff;
+  --brand-2: #0057ffcc;
+  --brand-3: #0057ff66;
+  --brand-4: #e5eeff;
+  --brand-5: #0057ff0d;
+
+  --color-auxiliary-1: #0d1839;
+  --color-auxiliary-2: #3d4766;
+  --color-auxiliary-3: #7d8ab2;
+
+  --color-status-success: #52c1b4;
+  --color-status-error: #ea5b41;
+  --color-status-warning: #ff9900;
+  --color-status-caution: #ffd600;
+  --color-status-info: #00a2ff;
+  --color-status-accent: #903da8;
+
+  /* Figma semantic text colors */
+  --color-text-primary: #101114;
+  --color-text-secondary: #525766;
+  --color-text-placeholder: #797b80;
+  --color-text-disabled: #b0b3bd;
+  --color-text-brand: #0057ff;
+  --color-text-anti: #ffffff;
+  --text-1: #101114;
+  --text-2: #525766;
+  --text-3: #797b80;
+  --text-4: #b0b3bd;
+  --text-disabled: #b0b3bd;
+
+  /* Figma semantic surfaces and borders */
+  --color-bg-page: #fcfcfd;
+  --color-bg-container: #ffffff;
+  --color-bg-container-hover: #f1f2f5;
+  --color-bg-component: #eaecf2;
+  --color-bg-component-hover: #d9d9d9;
+  --color-bg-component-disabled: #f1f2f5;
+  --color-bg-container-select: #e5eeff;
+  --color-bg-brand-light: #0057ff0d;
+  --layout-main-bg: #f1f2f5;
+  --page-bg: #f1f2f5;
+  --fill-1: #ffffff;
+  --fill-2: #f1f2f5;
+  --fill-3: #eaecf2;
+  --fill-4: #f1f2f5;
+
+  --color-border: #d9d9d9;
+  --color-border-subtle: #eaecf2;
+  --color-border-strong: #b0b3bd;
+  --color-border-brand: #0057ff;
+  --border-1: #eaecf2;
+  --border-2: #d9d9d9;
+  --border-3: #eaecf2;
+  --border-4: #b0b3bd;
+
+  /* Figma radius and spacing scales */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-round: 9999px;
+  --radius-full: 9999px;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 24px;
+  --spacing-2xl: 32px;
+  --spacing-3xl: 48px;
+
+  /* Figma effects, plus HeroUI-style focus/motion gaps */
+  --shadow-1: 0 1px 4px rgba(0, 0, 0, 0.1);
+  --shadow-2: 0 3px 8px rgba(0, 0, 0, 0.1);
+  --shadow-3: 0 6px 24px rgba(0, 0, 0, 0.15);
+  --shadow-4: 0 8px 16px rgba(0, 87, 255, 0.2);
+  --shadow-sm: var(--shadow-1);
+  --shadow-md: var(--shadow-2);
+  --shadow-lg: var(--shadow-3);
+  --shadow-focus: 0 0 0 3px rgba(0, 87, 255, 0.2);
+
+  --font-family-primary:
+    'PingFang SC', -apple-system, BlinkMacSystemFont, 'Microsoft YaHei', sans-serif;
+  --font-family-numeric: 'Source Han Sans CN', 'PingFang SC', sans-serif;
+  --font-size-xs: 10px;
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-title-sm: 18px;
+  --font-size-title-md: 24px;
+  --line-height-text-md: 22px;
+  --line-height-title-md: 32px;
+
+  --motion-fast: 160ms ease;
+  --motion-normal: 220ms ease;
+
+  /* Element Plus bridge */
+  --el-color-primary: var(--color-primary);
+  --el-color-primary-light-3: var(--color-primary-hover);
+  --el-color-primary-light-5: var(--color-primary-focus);
+  --el-color-primary-light-7: var(--color-primary-light);
+  --el-color-primary-light-8: var(--color-primary-light);
+  --el-color-primary-light-9: var(--color-primary-soft);
+  --el-color-primary-dark-2: var(--color-primary-active);
+  --el-color-success: var(--color-status-success);
+  --el-color-warning: var(--color-status-warning);
+  --el-color-danger: var(--color-status-error);
+  --el-color-error: var(--color-status-error);
+  --el-color-info: var(--color-status-info);
+  --el-text-color-primary: var(--color-text-primary);
+  --el-text-color-regular: var(--color-text-secondary);
+  --el-text-color-secondary: var(--color-text-secondary);
+  --el-text-color-placeholder: var(--color-text-placeholder);
+  --el-text-color-disabled: var(--color-text-disabled);
+  --el-border-color: var(--color-border);
+  --el-border-color-hover: var(--color-border-strong);
+  --el-border-color-light: var(--color-border-subtle);
+  --el-border-color-lighter: var(--color-border-subtle);
+  --el-bg-color-page: var(--color-bg-page);
+  --el-bg-color: var(--color-bg-container);
+  --el-bg-color-overlay: var(--color-bg-container);
+  --el-fill-color: var(--color-bg-component);
+  --el-fill-color-light: var(--color-bg-page);
+  --el-fill-color-lighter: var(--color-bg-container-hover);
+  --el-fill-color-blank: var(--color-bg-container);
+  --el-border-radius-base: var(--radius-sm);
+  --el-border-radius-small: var(--radius-xs);
+  --el-border-radius-round: var(--radius-full);
+  --el-box-shadow: var(--shadow-2);
+  --el-box-shadow-light: var(--shadow-1);
+  --el-box-shadow-lighter: var(--shadow-1);
+  --el-box-shadow-dark: var(--shadow-3);
+  --el-font-size-base: var(--font-size-md);
+}
