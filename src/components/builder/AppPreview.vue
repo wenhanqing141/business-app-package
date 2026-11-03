@@ -1,8 +1,8 @@
 <template>
   <div class="app-preview" :class="{ 'is-nested-only': nestedOnly }">
     <el-card v-if="nestedOnly" class="nested-region-panel" shadow="never">
-      <div class="nested-region-content" role="status" aria-label="嵌套区域">
-        <h2>嵌套区域</h2>
+      <div class="nested-region-content" role="status" :aria-label="regionLabel">
+        <h2>{{ regionLabel }}</h2>
       </div>
     </el-card>
 
@@ -154,7 +154,8 @@ import AppIcon from '@/components/icons/AppIcon.vue'
 const props = defineProps({
   app: { type: Object, default: null },
   // 搭建页的预览区是嵌套画布；门户首页仍保留应用预览。
-  nestedOnly: { type: Boolean, default: false }
+  nestedOnly: { type: Boolean, default: false },
+  regionLabel: { type: String, default: '嵌套区域' }
 })
 // 预览区内切换关联权限组 → 冒泡给搭建页（选择后自动保存，2026-10-11）
 defineEmits(['perm-group-change'])

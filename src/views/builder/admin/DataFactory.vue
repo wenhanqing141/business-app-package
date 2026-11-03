@@ -1,5 +1,5 @@
 <template>
-  <div class="df-page ai-surface-page" v-loading="loading">
+  <div v-loading="loading" class="df-page ai-surface-page">
     <!-- 深色数据流导航（线框 7） -->
     <aside class="df-nav">
       <div class="df-nav-item" :class="{ active: activeId === 'home' }" @click="activeId = 'home'">
@@ -24,7 +24,7 @@
     <!-- 主区域 -->
     <main class="df-main">
       <div class="df-actions">
-        <el-button type="primary" @click="createFlow">
+        <el-button type="primary" @click="openCreate">
           <AppIcon class="el-icon--left" name="添加" :size="16" />新建数据流
         </el-button>
         <el-button class="ai-btn" plain @click="ElMessage.info('AI 数据分析师（演示能力入口）')">
@@ -60,15 +60,62 @@
         </el-table>
       </el-card>
     </main>
+    <AppDialog
+      v-model="createDialog"
+      title="新建数据流"
+      description="为数据流填写一个便于识别的名称，最多 30 个字符"
+      confirm-text="创建"
+      :submit="createFlow"
+    >
+      <template #default="{ submit, submitting }">
+        <el-form
+          ref="formRef"
+          :model="form"
+          :rules="formRules"
+          :disabled="submitting"
+          label-position="top"
+          @submit.prevent="submit"
+        >
+          <el-form-item label="数据流名称" prop="name" required>
+            <el-input
+              v-model="form.name"
+              placeholder="如：后勤数据月度同步"
+              maxlength="30"
+              show-word-limit
+            />
+          </el-form-item>
+        </el-form>
+      </template>
+    </AppDialog>
+    <AppDialog
+      v-model="deleteDialog.show"
+      title="删除数据流"
+      :description="`确认删除数据流「${deleteDialog.row?.name || ''}」？`"
+      confirm-text="删除"
+      danger
+      :submit="confirmDelete"
+    />
   </div>
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { ElMessage } from 'element-plus'
 import { fetchDataFlows, createDataFlow, deleteDataFlow, startDataSync } from '@/api/appPackage'
 import AppIcon from '@/components/icons/AppIcon.vue'
+import AppDialog from '@/components/AppDialog.vue'
 
+const formRef = ref(null)
+const form = reactive({ name: '' })
+const formRules = {
+  name: [{ required: true, whitespace: true, message: '请输入数据流名称', trigger: 'blur' }]
+}
+const createDialog = ref(false)
+const deleteDialog = reactive({ show: false, row: null })
+function openCreate() {
+  form.name = ''
+  createDialog.value = true
+}
 const loading = ref(false)
 const flows = ref([])
 const tables = ref([])
@@ -90,35 +137,18 @@ async function load() {
 }
 
 async function createFlow() {
-  let name
-  try {
-    const res = await ElMessageBox.prompt('请输入数据流名称', '新建数据流', {
-      confirmButtonText: '创建',
-      cancelButtonText: '取消',
-      inputPlaceholder: '如：后勤数据月度同步'
-    })
-    name = res.value
-  } catch {
-    return
-  }
-  if (!name.trim()) return ElMessage.warning('名称不能为空')
-  const flow = await createDataFlow({ name })
+  if (!(await formRef.value.validate().catch(() => false))) return false
+  const flow = await createDataFlow({ name: form.name.trim() })
   ElMessage.success('已新建数据流')
   await load()
   activeId.value = flow.id
 }
 
-async function onDelete(flow) {
-  try {
-    await ElMessageBox.confirm(`确认删除数据流「${flow.name}」？`, '删除', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      confirmButtonClass: 'delete-confirm-button'
-    })
-  } catch {
-    return
-  }
+function onDelete(flow) {
+  Object.assign(deleteDialog, { show: true, row: flow })
+}
+async function confirmDelete() {
+  const flow = deleteDialog.row
   await deleteDataFlow(flow.id)
   if (activeId.value === flow.id) activeId.value = 'home'
   ElMessage.success('已删除')

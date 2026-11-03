@@ -51,7 +51,7 @@ export const updateMenuRole = (action, roleId) => request.put('/builder/menu-rol
 export const saveMenuRolePerm = (roleId, appIds) =>
   request.put('/builder/menu-role-perm', { roleId, appIds })
 // 应用权限（数据 / 字段 / 功能 / 其他，自动保存；按 appId 存储，同一应用多入口共用一份）
-export const fetchAppPermGroup = (appId) => request.get(`/builder/app/${appId}/perm-group`)
+export const fetchAppPermGroup = (appId, groupName) => request.get(`/builder/app/${appId}/perm-group`, { params: { groupName } })
 export const updateAppPermGroup = (appId, payload) => request.put(`/builder/app/${appId}/perm-group`, payload)
 
 // === 高级功能：聚合表 ===

@@ -280,7 +280,7 @@ function onDrop(e) {
   margin-left: 0;
   padding: 0;
   opacity: 0;
-  color: var(--text-3);
+  color: var(--text-1);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
   transition:
@@ -291,7 +291,7 @@ function onDrop(e) {
   opacity: 1;
 }
 .more:hover {
-  color: var(--brand-1);
+  color: var(--text-1);
   background: var(--brand-7);
 }
 /* 仅保留危险操作语义色，其余尺寸与状态使用项目默认的 Element 下拉菜单组件。 */

@@ -158,18 +158,18 @@ onMounted(() => load())
 </script>
 
 <style scoped>
-/* 配色与搭建页统一：页面 / 顶栏 / 左栏同为 #F5F8FF，不画 1px 分隔线 */
+/* 配色与搭建页统一：页面 / 顶栏 / 左栏共用页面背景色，不画 1px 分隔线 */
 .portal-page {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: var(--page-bg);
+  background: var(--app-page-bg);
 }
 /* 高度与搭建页顶栏一致（64px） */
 .portal-header {
   height: 64px;
   flex-shrink: 0;
-  background: var(--brand-8);
+  background: var(--app-page-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -215,7 +215,7 @@ onMounted(() => load())
 .portal-aside {
   width: 240px;
   flex-shrink: 0;
-  background: var(--brand-8);
+  background: var(--app-page-bg);
   display: flex;
   flex-direction: column;
 }

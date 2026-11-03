@@ -10,10 +10,8 @@
     stroke-linejoin="round"
     aria-hidden="true"
   >
-    <circle cx="12" cy="7" r="3.5" />
-    <path d="M12 10.5v2.5" />
-    <path d="M7 13h10v4H7z" />
-    <path d="M5 17h14v3H5z" />
+    <path d="M21 14H15L14 10.4641A4 4 0 1 0 10 10.4641L9 14H3V18H21V14Z" />
+    <path d="M3 21H21" />
   </svg>
 </template>
 

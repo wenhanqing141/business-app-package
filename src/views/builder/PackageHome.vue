@@ -1,10 +1,11 @@
 <template>
-  <div class="pkg-home ai-surface-page" v-loading="loading">
+  <BuilderWorkspace class="pkg-home ai-surface-page" v-loading="loading">
+    <template #header>
     <!-- ============ 顶栏（线框 1）：退出 / 应用名称 …… 业务图谱 / AI ============ -->
     <!-- 2026-10-11：右上角「发布」按钮已去掉（PRD v2.6 模块十一）——应用包创建完成即自动生效并入应用管理 -->
     <header class="ph-header">
       <AppTooltip v-if="!isPortal" content="退出" placement="bottom">
-        <el-button text class="exit-btn" @click="exitPackage">
+        <el-button text class="exit-btn" aria-label="返回业务应用包管理" @click="exitPackage">
           <AppIcon class="exit-icon" name="左" :size="16" />
         </el-button>
       </AppTooltip>
@@ -84,8 +85,9 @@
         </template>
       </el-dropdown>
     </header>
+    </template>
 
-    <div class="ph-body">
+    <template #aside>
       <!-- ============ 左栏：分组菜单搜索 + 顶级加号 + 分组树 ============ -->
       <aside class="ph-aside">
         <!-- 设计稿：默认态 [搜索 127 | 排序 ≡ | 添加 +]；搜索态输入框撑满 208 且两个按钮隐藏；
@@ -102,6 +104,8 @@
             <el-button
               class="sort-toggle"
               :class="{ sorting: sortMode }"
+              :aria-label="sortMode ? '退出排序' : '排序'"
+              :aria-pressed="sortMode"
               size="small"
               @click="toggleSort"
             >
@@ -174,12 +178,11 @@
           <el-icon class="arrow-right"><ArrowRight /></el-icon>
         </div>
       </aside>
+    </template>
 
-      <!-- ============ 右大区：功能预览区 ============ -->
-      <section class="ph-preview">
-        <AppPreview :app="selectedApp" nested-only @perm-group-change="onPermGroupChange" />
-      </section>
-    </div>
+    <AppPreview :app="selectedApp" nested-only @perm-group-change="onPermGroupChange" />
+
+    <template #overlays>
 
     <!-- ============ 新建引擎应用 ============ -->
     <el-dialog
@@ -192,16 +195,14 @@
     >
       <el-form class="ph-dialog-form" label-width="88px">
         <el-form-item label="所属分组">
-          <el-select
+          <BaseSelect
             v-model="createDialog.groupId"
             clearable
             placeholder="顶级（不分组）"
             class="full ph-dialog-select"
-            popper-class="ph-dialog-select-popper"
-            fit-input-width
           >
             <el-option v-for="g in groupOptions" :key="g.id" :label="g.name" :value="g.id" />
-          </el-select>
+          </BaseSelect>
         </el-form-item>
         <el-form-item label="应用名称" required>
           <BaseTextInput
@@ -422,15 +423,13 @@
         class="ph-dialog-form stage-form"
       >
         <el-form-item label="关联权限组" required>
-          <el-select
+          <BaseSelect
             v-model="stageDialog.permGroupName"
             class="full ph-dialog-select"
             placeholder="请选择权限组"
-            popper-class="ph-dialog-select-popper"
-            fit-input-width
           >
             <el-option v-for="n in PERM_GROUP_NAMES" :key="n" :label="n" :value="n" />
-          </el-select>
+          </BaseSelect>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -499,7 +498,7 @@
           <p class="graph-dialog-hint">业务图谱以固定链接打开，动态参数传入本包内全部应用 ID 列表</p>
         </div>
       </template>
-      <BaseTextInput :model-value="graphUrl" type="textarea" :rows="3" readonly class="graph-url" />
+      <BaseTextInput :model-value="graphUrl" type="textarea" :rows="3" disabled class="graph-url" />
       <template #footer>
         <div class="ph-dialog-actions">
           <el-button @click="copyGraph">复制链接</el-button>
@@ -587,6 +586,7 @@
       </el-scrollbar>
       <template #footer>
         <div class="ph-dialog-actions">
+          <el-button :disabled="setupSaving" @click="cancelSetup">取消</el-button>
           <el-button
             type="primary"
             :disabled="!setupNameValid"
@@ -618,7 +618,8 @@
         </div>
       </div>
     </div>
-  </div>
+    </template>
+  </BuilderWorkspace>
 </template>
 
 <script setup>
@@ -645,11 +646,13 @@ import {
   sortApps
 } from '@/api/appPackage'
 import { fetchPortalSummary } from '@/api/portal'
+import BuilderWorkspace from '@/layouts/BuilderWorkspace.vue'
 import AppPreview from '@/components/builder/AppPreview.vue'
 import MenuTree from '@/components/builder/MenuTree.vue'
 import PackageSearchInput from '@/components/PackageSearchInput.vue'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import BaseTextInput from '@/components/BaseTextInput.vue'
+import BaseSelect from '@/components/BaseSelect.vue'
 import { setPkgVersion } from '@/api/pkgVersion'
 import EngineIcon from '@/components/icons/EngineIcon.vue'
 import PackageIcon from '@/components/icons/PackageIcon.vue'
@@ -1289,6 +1292,12 @@ function openSetupUploadPicker() {
   input.click()
 }
 
+function cancelSetup() {
+  if (setupSaving.value) return
+  setupDialog.show = false
+  if (setupDialog.mode === 'create') router.replace('/package/manage')
+}
+
 async function saveSetup() {
   setupSaving.value = true
   try {
@@ -1422,24 +1431,6 @@ onBeforeUnmount(() => {
 </script>
 
 <style scoped>
-.pkg-home {
-  display: flex;
-  flex-direction: column;
-  height: 100vh;
-  background: #f5f8ff;
-  position: relative;
-}
-
-/* 顶栏（设计稿：64px 高、浅蓝白底、无分割线） */
-.ph-header {
-  height: var(--builder-header-height);
-  flex-shrink: 0;
-  background: transparent;
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  gap: 8px;
-}
 /* 退出：与外层列表页入口统一为 36×36 圆角方块。 */
 .exit-btn {
   width: 36px;
@@ -1611,28 +1602,8 @@ onBeforeUnmount(() => {
   min-width: 0;
 }
 
-.ph-body {
-  flex: 1;
-  display: flex;
-  min-height: 0;
-}
-
-/* 左栏（设计稿：240px 宽、与顶栏同底、无分割线） */
 .ph-aside {
-  width: var(--builder-aside-width);
-  min-width: var(--builder-aside-width);
-  max-width: var(--builder-aside-width);
-  flex-shrink: 0;
-  background: transparent;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* 覆盖页面一致性样式中的侧栏底色，统一继承应用列表页背景。 */
-.pkg-home.ai-surface-page .ph-aside {
-  background: transparent;
-  border-right: 0;
+  height: 100%;
 }
 .aside-search {
   display: flex;
@@ -1693,11 +1664,13 @@ onBeforeUnmount(() => {
 .sort-toggle.sorting {
   color: var(--icon-sort-exit);
 }
-.sort-toggle.sorting:hover {
-  --el-button-hover-border-color: var(--color-primary);
+.sort-toggle.sorting:hover,
+.sort-toggle.sorting:focus-visible {
+  --el-button-hover-border-color: var(--icon-sort-exit);
   color: var(--icon-sort-exit);
-  border-color: var(--color-primary);
-  background: var(--brand-7);
+  border-color: var(--icon-sort-exit);
+  background: var(--danger-8);
+  outline-color: var(--icon-sort-exit);
 }
 .aside-tree {
   flex: 1;
@@ -1714,6 +1687,8 @@ onBeforeUnmount(() => {
   display: none;
 }
 .aside-tree :deep(.el-scrollbar__view) {
+  display: flex;
+  flex-direction: column;
   min-height: 100%;
   min-width: 0;
 }
@@ -1746,23 +1721,6 @@ onBeforeUnmount(() => {
 .aside-footer .arrow-right {
   margin-left: auto;
   font-size: 12px;
-}
-
-/* 右预览区：白色面板贴齐顶栏与左栏，右侧 / 下方留 16px 间距（设计稿） */
-.ph-preview {
-  flex: 1;
-  min-width: 0;
-  padding: 0 8px 8px 0;
-  background: transparent;
-  border: 0;
-}
-.ph-preview :deep(> div) {
-  height: 100%;
-  box-sizing: border-box;
-  background: var(--fill-1);
-  border: 1px solid var(--border-2);
-  border-radius: 24px;
-  overflow: hidden;
 }
 
 /* 顶栏 AI 助手图标入口（设计稿实测 27.6×26.3 ≈ 28px 彩色圆标） */
@@ -2098,7 +2056,7 @@ onBeforeUnmount(() => {
   justify-content: center;
   gap: 6px;
   cursor: pointer;
-  background: var(--fill-4);
+  background: var(--fill-1);
   color: var(--text-3);
   transition: all 0.15s;
 }
@@ -2107,7 +2065,7 @@ onBeforeUnmount(() => {
 }
 .icon-upload-box.active {
   border-style: solid;
-  border-color: var(--brand-1);
+  border-color: var(--border-2);
   background: var(--fill-1);
 }
 .icon-upload-box.active .icon-preview {
@@ -2130,6 +2088,7 @@ onBeforeUnmount(() => {
 }
 .setup-upload-retry {
   height: 20px;
+  margin: 0;
   padding: 0;
   font-size: 14px;
   line-height: 20px;
@@ -2199,9 +2158,6 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 768px) {
-  .ph-header {
-    padding: 0 12px;
-  }
   .ph-app-name {
     max-width: 120px;
   }
@@ -2215,9 +2171,6 @@ onBeforeUnmount(() => {
   .aside-footer {
     margin-right: 12px;
     margin-left: 12px;
-  }
-  .ph-preview {
-    padding: 0 8px 8px 0;
   }
 }
 </style>
@@ -2421,26 +2374,6 @@ onBeforeUnmount(() => {
 .ph-dialog .el-input__count,
 .ph-dialog .el-input__count-inner {
   color: var(--text-3);
-}
-.ph-dialog-select-popper .el-select-dropdown__wrap .el-scrollbar__view {
-  padding: 0;
-}
-.ph-dialog-select-popper .el-select-dropdown__item {
-  min-height: 40px;
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 10px;
-  color: var(--text-1);
-}
-.ph-dialog-select-popper .el-select-dropdown__item:hover {
-  background: var(--fill-2);
-}
-.ph-dialog-select-popper .el-select-dropdown__item.is-selected {
-  background: transparent;
-  color: var(--brand-1);
-}
-.ph-dialog-select-popper .el-select-dropdown__item.is-selected:hover {
-  background: var(--fill-2);
 }
 .ph-message-box {
   width: min(400px, calc(100vw - 32px));

@@ -75,7 +75,7 @@ function goHome() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f7f8fc;
+  background: var(--app-page-bg);
 }
 .passport-card {
   width: 420px;

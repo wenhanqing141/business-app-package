@@ -10,6 +10,7 @@
       <span class="ac-header-title">AI 创建</span>
     </header>
 
+    <el-scrollbar class="ac-main-scroll" :class="{ 'is-home': isHero }" always>
     <!-- ============ 主体：阶段 0～2 单栏居中；蓝图生成后转两栏 ============ -->
     <div
       ref="bodyRef"
@@ -308,7 +309,7 @@
                     按蓝图逐个生成应用并自动发布。暂不支持自动创建的应用已计入待完成任务，由人工处理。
                   </p>
                   <div class="ac-progress">
-                    <el-table
+                    <BaseTable
                       :data="genItems"
                       class="ac-progress-table"
                       size="small"
@@ -340,7 +341,7 @@
                           }}</span>
                         </template>
                       </el-table-column>
-                    </el-table>
+                    </BaseTable>
                   </div>
 
                 </div>
@@ -443,12 +444,14 @@
                 </div>
               </div>
               <div class="ac-composer-inner">
-                <ComposerPrimitiveInput
-                  class="ac-composer-input"
-                  :placeholder="placeholder"
-                  :disabled="!inputEnabled"
-                  @input="onComposerInput"
-                />
+                <AppTextareaScrollbar>
+                  <ComposerPrimitiveInput
+                    class="ac-composer-input"
+                    :placeholder="placeholder"
+                    :disabled="!inputEnabled"
+                    @input="onComposerInput"
+                  />
+                </AppTextareaScrollbar>
                 <div class="ac-composer-bar">
                   <div class="ac-composer-tools">
                     <el-upload
@@ -583,6 +586,7 @@
         </el-tabs>
       </aside>
     </div>
+    </el-scrollbar>
   </div>
 </template>
 
@@ -624,6 +628,8 @@ import {
 import { RuntimeAdapter } from '@assistant-ui/core/store'
 import { createPackageFromAi } from '@/api/aiCreate'
 import AppIcon from '@/components/icons/AppIcon.vue'
+import BaseTable from '@/components/BaseTable.vue'
+import AppTextareaScrollbar from '@/components/AppTextareaScrollbar.vue'
 import EngineIcon from '@/components/icons/EngineIcon.vue'
 import BlueprintReview from '@/components/builder/BlueprintReview.vue'
 import { createAssistantComposerRuntime } from '@/runtime/assistantUiRuntime'
@@ -1364,7 +1370,9 @@ function onBack() {
 
 <style scoped>
 .ac-page {
+  --ac-header-height: 68px;
   height: 100vh;
+  height: 100dvh;
   display: flex;
   flex-direction: column;
   background: var(--layout-main-bg, #f5f8ff);
@@ -1409,8 +1417,33 @@ function onBack() {
   color: #7b8495;
 }
 
+/* 空状态整体居中；内容超出可视高度时使用统一悬浮滚动条。 */
+.ac-main-scroll {
+  flex: 1;
+  min-height: 0;
+}
+.ac-main-scroll :deep(> .el-scrollbar__wrap > .el-scrollbar__view) {
+  height: 100%;
+}
+.ac-main-scroll.is-home :deep(> .el-scrollbar__wrap > .el-scrollbar__view) {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: 100%;
+  /* 空状态内容区底部留白固定为 48px。 */
+  padding-bottom: var(--spacing-3xl);
+}
+.ac-main-scroll.is-home .ac-body.single {
+  flex: none;
+  height: auto;
+  margin-block: auto;
+  padding: 0 28px;
+  overflow: visible;
+}
+
 /* ---------------- 主体 ---------------- */
 .ac-body {
+  height: 100%;
   flex: 1;
   min-height: 0;
   display: flex;
@@ -1870,41 +1903,6 @@ function onBack() {
 }
 .ac-progress {
   margin-top: 12px;
-}
-.ac-progress-table {
-  --el-table-border-color: var(--border-2);
-  --el-table-header-bg-color: var(--fill-2);
-  --el-table-bg-color: var(--fill-1);
-  --el-table-tr-bg-color: var(--fill-1);
-  --el-table-row-hover-bg-color: var(--fill-1);
-  --el-table-text-color: var(--text-1);
-  --el-table-header-text-color: var(--text-1);
-  border: 1px solid var(--border-2);
-  border-radius: var(--radius-md);
-  overflow: hidden;
-}
-.ac-progress-table :deep(.el-table__inner-wrapper::before) {
-  height: 0;
-}
-.ac-progress-table :deep(th.el-table__cell) {
-  padding: 0;
-  font-size: 14px;
-  font-weight: var(--font-weight-regular);
-}
-.ac-progress-table :deep(td.el-table__cell) {
-  padding: 0;
-  vertical-align: top;
-  font-size: 14px;
-}
-.ac-progress-table :deep(.cell) {
-  font-size: 14px;
-  line-height: 1.5;
-}
-.ac-progress-table :deep(th.el-table__cell .cell) {
-  padding: 8px 16px;
-}
-.ac-progress-table :deep(td.el-table__cell .cell) {
-  padding: 10px 16px;
 }
 .ac-progress-status.published {
   color: var(--color-status-success);
@@ -2897,7 +2895,7 @@ function onBack() {
 }
 
 .ac-header {
-  height: 68px;
+  height: var(--ac-header-height);
   padding: 0 var(--spacing-xl);
   gap: 13px;
   background: rgba(255, 255, 255, 0.94);
@@ -2935,7 +2933,7 @@ function onBack() {
   align-items: center;
   padding: 56px 28px 72px;
   background: var(--ac-bg);
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .ac-body.single .ac-chat.hero {
@@ -3620,10 +3618,10 @@ function onBack() {
   width: 100%;
   height: 100%;
   border: 0;
-  border-radius: 50%;
+  border-radius: 0;
   background: transparent;
   box-shadow: none;
-  filter: drop-shadow(0 8px 16px rgba(67, 31, 104, 0.16));
+  filter: none;
   transform: translateY(-4px) scale(1.2);
 }
 
@@ -4230,14 +4228,15 @@ function onBack() {
   }
 }
 
-/* Conversation composer: reuse the AI-create surface and pin it 24px above the viewport bottom. */
+/* 空状态输入区参与整体排版，与场景卡片保持 64px 间距。 */
 .ac-body.single .ac-chat.hero .ac-composer {
-  position: fixed;
-  left: 50%;
-  bottom: 24px;
-  z-index: 20;
-  width: 900px;
-  transform: translateX(-50%);
+  position: relative;
+  left: auto;
+  bottom: auto;
+  z-index: auto;
+  width: 100%;
+  margin: 0;
+  transform: none;
 }
 
 /* 单栏对话态保持原布局，不增加额外留白。 */
@@ -4255,13 +4254,15 @@ function onBack() {
   margin: 0;
 }
 
-/* The hero content keeps its natural rhythm while the fixed composer owns the bottom action area. */
+/* 标题、场景卡片和输入区作为一个完整内容块居中。 */
 .ac-body.single .ac-chat.hero {
-  padding-bottom: 228px;
+  max-height: none;
+  padding: 0;
 }
 
 .ac-body.single .ac-chat.hero .ac-hero-group {
-  transform: translateY(-48px);
+  flex: none;
+  transform: none;
 }
 
 .ac-body.single {
@@ -5168,6 +5169,17 @@ function onBack() {
 
   .ac-chat:not(.hero) .ac-card.ask .ac-ask-submit .el-button--primary {
     width: 100%;
+  }
+}
+@media (max-width: 720px) {
+  .ac-page {
+    --ac-header-height: 64px;
+  }
+  .ac-main-scroll.is-home .ac-body.single {
+    padding-inline: var(--spacing-lg);
+  }
+  .ac-hero-group .ac-hero-cards {
+    grid-template-columns: 1fr;
   }
 }
 </style>

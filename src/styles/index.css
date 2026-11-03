@@ -52,6 +52,14 @@ a {
   background: rgba(87, 88, 94, 0.56);
 }
 
+/* 文本域保留原生编辑与光标滚动，只由 Element Plus 绘制悬浮滑块。 */
+.app-textarea-scrollbar textarea {
+  scrollbar-width: none;
+}
+.app-textarea-scrollbar textarea::-webkit-scrollbar {
+  display: none;
+}
+
 /* ============================================================
  * Element Plus 组件全局微调（只调视觉，不动结构）
  * ============================================================ */
@@ -102,6 +110,11 @@ a {
 .el-input__wrapper.is-focus,
 .el-textarea__inner:focus {
   box-shadow: 0 0 0 1px var(--border-3) inset;
+}
+
+/* 业务图谱：禁用链接框使用现有浅灰填充色。 */
+.graph-url.el-textarea.is-disabled {
+  --el-disabled-bg-color: var(--fill-2);
 }
 
 /* Select: selected values use the primary text token across single and
@@ -169,6 +182,283 @@ a {
 .el-message-box__title {
   font-size: 16px;
   font-weight: 600;
+}
+
+
+/* 应用后台弹窗：沿用搭建工作台的尺寸、留白和控件规范。
+ * 所有正文使用 Element Plus 悬浮滚动条；标题和操作区不参与滚动。 */
+.app-dialog {
+  --app-dialog-padding: var(--spacing-xl);
+  margin: var(--spacing-lg) auto;
+  padding: 0;
+  max-width: calc(100vw - var(--spacing-2xl));
+  max-height: min(600px, calc(100dvh - var(--spacing-2xl)));
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-xl);
+  background: var(--fill-1);
+  box-shadow: var(--shadow-3);
+}
+/* 权限配置与添加角色弹窗固定高度；列表在独立外框内滚动。 */
+.app-dialog.menu-permission-dialog,
+.app-dialog.menu-role-dialog {
+  height: 600px;
+}
+.menu-permission-dialog .app-dialog-scrollbar > .el-scrollbar__wrap > .el-scrollbar__view,
+.menu-role-dialog .app-dialog-scrollbar > .el-scrollbar__wrap > .el-scrollbar__view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app-dialog .el-dialog__header {
+  margin: 0;
+  padding: 20px 56px var(--spacing-lg) var(--app-dialog-padding);
+}
+.app-dialog.app-dialog--with-description .el-dialog__header {
+  padding-bottom: var(--spacing-xs);
+}
+.app-dialog .el-dialog__title {
+  display: block;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--spacing-xl);
+  overflow-wrap: anywhere;
+}
+.app-dialog .el-dialog__headerbtn {
+  top: var(--spacing-md);
+  right: var(--spacing-lg);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--spacing-2xl);
+  height: var(--spacing-2xl);
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  transition: background-color var(--motion-fast), color var(--motion-fast);
+}
+.app-dialog .el-dialog__headerbtn:hover {
+  background: var(--fill-2);
+  color: var(--text-1);
+}
+.app-dialog .el-dialog__headerbtn:focus-visible {
+  outline: 2px solid var(--brand-5);
+  outline-offset: -2px;
+}
+.app-dialog .el-dialog__headerbtn .el-dialog__close {
+  color: inherit;
+  font-size: 20px;
+}
+.app-dialog .el-dialog__body {
+  display: flex;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+.app-dialog-scrollbar {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+}
+.app-dialog-scrollbar > .el-scrollbar__wrap {
+  overflow-x: hidden;
+}
+.app-dialog-scrollbar > .el-scrollbar__wrap > .el-scrollbar__view {
+  padding: 0 var(--app-dialog-padding) var(--spacing-xs);
+}
+.app-dialog .el-dialog__footer {
+  padding: var(--spacing-xl) var(--app-dialog-padding);
+}
+.app-dialog-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+}
+.app-dialog-actions .el-button {
+  min-width: 80px;
+  height: 36px;
+  margin: 0;
+  padding: 0 var(--spacing-lg);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  box-shadow: none;
+}
+.app-dialog-actions .el-button:not(.el-button--primary):not(.el-button--danger) {
+  --el-button-text-color: var(--text-1);
+  --el-button-bg-color: var(--fill-1);
+  --el-button-border-color: var(--border-2);
+  --el-button-hover-text-color: var(--text-1);
+  --el-button-hover-bg-color: var(--fill-2);
+  --el-button-hover-border-color: var(--border-4);
+}
+.app-dialog-content {
+  margin: 0;
+  color: var(--text-1);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-text-md);
+  overflow-wrap: anywhere;
+}
+.app-dialog-description {
+  margin: 0 0 var(--spacing-lg);
+  color: var(--text-3);
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-text-md);
+  overflow-wrap: anywhere;
+}
+.app-dialog-description:last-child {
+  margin-bottom: 0;
+  color: var(--text-2);
+}
+.app-dialog .el-form-item {
+  margin-bottom: 20px;
+}
+.app-dialog .el-form-item:last-child {
+  margin-bottom: 0;
+}
+.app-dialog .el-form-item__label {
+  position: relative;
+  height: auto;
+  margin-bottom: var(--spacing-sm);
+  padding: 0;
+  color: var(--text-1);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  line-height: 20px;
+}
+/* 顶部字段标题与输入框左边缘对齐，必填符号沿用新建表单的左悬位置。 */
+.app-dialog .el-form--label-top .el-form-item.is-required .el-form-item__label::before {
+  position: absolute;
+  top: 0;
+  left: -9px;
+  margin: 0;
+}
+.app-dialog .el-form-item__content {
+  min-width: 0;
+}
+.app-dialog .el-input__wrapper,
+.app-dialog .el-select__wrapper {
+  min-height: 36px;
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 0 1px var(--border-2) inset;
+}
+.app-dialog .el-select {
+  width: 100%;
+}
+.app-dialog .el-input__wrapper:hover,
+.app-dialog .el-select__wrapper:hover,
+.app-dialog .el-input__wrapper.is-focus,
+.app-dialog .el-select__wrapper.is-focused {
+  box-shadow: 0 0 0 1px var(--brand-1) inset;
+}
+.app-dialog .el-form-item.is-error .el-input__wrapper,
+.app-dialog .el-form-item.is-error .el-select__wrapper {
+  box-shadow: 0 0 0 1px var(--color-danger) inset;
+}
+.app-dialog .el-form-item__error {
+  position: static;
+  width: 100%;
+  padding-top: var(--spacing-xs);
+  line-height: 20px;
+}
+.app-dialog .is-disabled {
+  --el-disabled-bg-color: var(--color-bg-component-disabled);
+}
+.app-dialog .el-input__count,
+.app-dialog .el-input__count-inner {
+  color: var(--text-3);
+}
+.app-dialog-error {
+  margin-top: var(--spacing-lg);
+}
+.app-dialog-options .mp-list-group {
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--border-1);
+}
+.app-dialog-options .mp-list-group:first-child {
+  padding-top: 0;
+}
+.app-dialog-options .mp-list-group:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.app-dialog-role-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+.app-dialog-role {
+  --el-checkbox-checked-text-color: var(--el-checkbox-text-color);
+  display: flex;
+  width: 100%;
+  height: 40px;
+  margin: 0;
+  padding: 0 var(--spacing-md);
+  border-radius: var(--radius-sm);
+}
+.app-dialog-role:hover {
+  background: var(--fill-2);
+}
+.app-dialog-role .el-checkbox__label {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  white-space: normal;
+}
+.app-dialog-scope-options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  width: 100%;
+}
+.app-dialog-scope-options .el-radio.is-bordered {
+  width: 100%;
+  height: auto;
+  min-height: 40px;
+  margin: 0;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-sm);
+}
+.app-dialog-scope-options .el-radio__label {
+  white-space: normal;
+  line-height: 20px;
+}
+.app-dialog-scope-options .el-radio.is-bordered:not(.is-disabled):hover {
+  background: var(--fill-2);
+}
+.app-dialog-scope-options .el-radio.is-bordered.is-checked {
+  background: var(--brand-7);
+}
+.app-dialog-scope-options--inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm) var(--spacing-lg);
+}
+.app-dialog-scope-options--inline .el-radio {
+  margin: 0;
+}
+.app-dialog-scope-options--inline .el-radio__label {
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .app-dialog {
+    --app-dialog-padding: var(--spacing-lg);
+  }
+  .app-dialog .el-dialog__header {
+    padding-top: var(--spacing-lg);
+  }
+  .app-dialog .el-dialog__footer {
+    padding-top: var(--spacing-lg);
+    padding-bottom: var(--spacing-lg);
+  }
+  .app-dialog-actions .el-button {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 /* 抽屉：头部更克制 */
@@ -266,6 +556,38 @@ a {
   background: #eeeeef;
   color: #18181b;
 }
+/* BaseSelect：复用新建表单「所属分组」的下拉列表视觉。 */
+/* 当前 Element Select 未透传 scrollbar 的 always；仅让有高度的现有滑块常显。 */
+.base-select-popper .el-scrollbar__bar.is-vertical:has(> .el-scrollbar__thumb[style*="height:"]) {
+  display: block !important;
+  opacity: 1;
+}
+.base-select-popper .el-select-dropdown__wrap .el-scrollbar__view {
+  padding: 0;
+}
+.base-select-popper .el-select-dropdown__item {
+  min-height: 40px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  color: var(--text-1);
+}
+.base-select-popper .el-select-dropdown__item:not(.is-disabled):hover,
+.base-select-popper .el-select-dropdown__item.is-hovering:not(.is-disabled) {
+  background: var(--fill-2);
+}
+.base-select-popper .el-select-dropdown__item.is-selected {
+  background: transparent;
+  color: var(--brand-1);
+}
+.base-select-popper .el-select-dropdown__item.is-selected:not(.is-disabled):hover,
+.base-select-popper .el-select-dropdown__item.is-selected.is-hovering:not(.is-disabled) {
+  background: var(--fill-2);
+}
+.base-select-popper .el-select-dropdown__item.is-disabled {
+  background: transparent;
+  color: var(--text-3);
+}
 .el-dropdown__popper .el-dropdown-menu__item.is-danger,
 .el-dropdown__popper .el-dropdown-menu__item.danger-item {
   color: #ff3b40;
@@ -275,6 +597,12 @@ a {
 .el-dropdown__popper .el-dropdown-menu__item.danger-item:hover,
 .el-dropdown__popper .el-dropdown-menu__item.danger-item:focus {
   color: #ff3b40;
+}
+
+/* 应用包基础信息：五行设置使用页面背景，去除投影。 */
+.base-info.ai-surface-page .info-card {
+  background: var(--app-page-bg);
+  box-shadow: none;
 }
 
 /* 卡片：12px 圆角 + 细边 + 轻影 */
@@ -296,6 +624,83 @@ a {
 }
 .el-table--border .el-table__cell {
   border-right-color: var(--border-1);
+}
+
+/* BaseTable：项目表格的统一视觉入口。 */
+.el-table.app-data-table {
+  --app-table-border-color: var(--border-1);
+  --app-table-cell-padding-block: 10px;
+  --app-table-cell-padding-inline: var(--spacing-lg);
+  --el-table-border-color: var(--app-table-border-color);
+  --el-table-header-bg-color: var(--fill-2);
+  --el-table-bg-color: var(--fill-1);
+  --el-table-tr-bg-color: var(--fill-1);
+  --el-table-row-hover-bg-color: var(--fill-1);
+  --el-table-text-color: var(--text-1);
+  --el-table-header-text-color: var(--text-2);
+  border: 1px solid var(--app-table-border-color);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.el-table.app-data-table .el-table__inner-wrapper::before {
+  height: 0;
+}
+/* 空状态使用表格内宽，避免 Element 的外宽计算叠加边框后产生横向溢出。 */
+.el-table.app-data-table .el-table__empty-block {
+  width: 100% !important;
+}
+.el-table.app-data-table .el-table__header-wrapper th.el-table__cell {
+  padding: 0;
+  background: var(--fill-2);
+  color: var(--text-2);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-regular);
+}
+.el-table.app-data-table td.el-table__cell {
+  padding: 0;
+  vertical-align: top;
+  color: var(--text-1);
+  font-size: var(--font-size-md);
+}
+.el-table.app-data-table .cell {
+  font-size: var(--font-size-md);
+  line-height: 1.5;
+}
+.el-table.app-data-table .el-table__cell {
+  border-bottom-color: var(--app-table-border-color);
+}
+.el-table.app-data-table.el-table--border .el-table__cell {
+  border-right-color: var(--app-table-border-color);
+}
+.el-table.app-data-table .el-table__cell .cell {
+  padding: var(--app-table-cell-padding-block) var(--app-table-cell-padding-inline);
+}
+.el-table.app-data-table .el-table__body tr:last-child > .el-table__cell {
+  border-bottom-width: 0;
+}
+.el-table.app-data-table td.app-data-table__primary {
+  font-weight: var(--font-weight-medium);
+}
+.el-table.app-data-table .el-table__row:hover > td.el-table__cell {
+  background: var(--fill-1) !important;
+}
+
+/* 权限表格末行保留下描边，仅在表格正文实际出现垂直滚动时隐藏。 */
+.el-table.app-data-table.permission-table .el-table__body tr:last-child > .el-table__cell {
+  border-bottom-width: 1px;
+}
+.el-table.app-data-table.permission-table.el-table--scrollable-y
+  .el-table__body
+  tr:last-child
+  > .el-table__cell {
+  border-bottom-width: 0;
+}
+
+/* 菜单权限与应用权限：表头、数据行统一为 48px。 */
+.el-table.app-data-table.permission-table th.el-table__cell,
+.el-table.app-data-table.permission-table td.el-table__cell {
+  height: var(--spacing-3xl);
+  vertical-align: middle;
 }
 
 /* 标签：小圆角 */
@@ -326,6 +731,18 @@ a {
 .el-empty__description p {
   color: var(--text-3);
   font-size: 13px;
+}
+
+.ai-surface-page .el-empty.menu-permission-empty {
+  padding: var(--spacing-lg);
+}
+.menu-permission-empty .el-empty__image {
+  height: 100px;
+  flex-shrink: 0;
+}
+.menu-permission-empty .el-empty__description p {
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-text-md);
 }
 
 /* 表单标签 */

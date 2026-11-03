@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>BaseTable 组件验收</title>
+    <style>
+      body {
+        margin: 24px;
+      }
+      main {
+        max-width: 700px;
+      }
+      .contract-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 16px 0;
+      }
+      .contract-controls .el-button + .el-button {
+        margin-left: 0;
+      }
+      .contract-append {
+        padding: 12px 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module">
+      import { createApp, h, ref } from 'vue'
+      import ElementPlus, { ElButton, ElEmpty, ElTableColumn } from 'element-plus'
+      import 'element-plus/dist/index.css'
+      import '/src/styles/index.css'
+      import '/src/styles/ai-create-consistency.css'
+      import BaseTable from '/src/components/BaseTable.vue'
+
+      createApp({
+        setup() {
+          const table = ref()
+          const source = [
+            { id: 2, name: '教师', description: '用于核对作用域插槽和行选择' },
+            {
+              id: 1,
+              name: '学生',
+              description:
+                '较长内容用于核对表格自然换行后能够完整显示，并且表头与正文使用相同的内边距。'
+            },
+            { id: 3, name: '维修工程师', description: '用于核对排序事件与实例方法' }
+          ]
+          const rows = ref([...source])
+          const selected = ref([])
+          const readResult = ref('未读取')
+          const sortResult = ref('未排序')
+          const button = (label, action) => h(ElButton, { onClick: action }, () => label)
+          return () =>
+            h('main', { class: 'ai-surface-page' }, [
+              h('h1', 'BaseTable 组件验收'),
+              h('p', '仅使用本地内存数据，不调用业务接口。'),
+              h('div', { class: 'contract-controls' }, [
+                button('选择首行', () => table.value.toggleRowSelection(rows.value[0], true)),
+                button('读取选择', () => {
+                  readResult.value =
+                    table.value
+                      .getSelectionRows()
+                      .map((row) => row.id)
+                      .join(',') || '无'
+                }),
+                button('清空选择', () => table.value.clearSelection()),
+                button('按编号升序', () => table.value.sort('id', 'ascending')),
+                button('清除排序', () => {
+                  table.value.clearSort()
+                  sortResult.value = '已清除'
+                }),
+                button('显示空数据', () => {
+                  rows.value = []
+                }),
+                button('恢复数据', () => {
+                  rows.value = [...source]
+                })
+              ]),
+              h(
+                'p',
+                { role: 'status', 'aria-live': 'polite' },
+                `已选：${selected.value.map((row) => row.id).join(',') || '无'}；读取：${readResult.value}；排序：${sortResult.value}`
+              ),
+              h(
+                BaseTable,
+                {
+                  ref: table,
+                  data: rows.value,
+                  rowKey: 'id',
+                  border: true,
+                  'aria-label': 'BaseTable 契约表格',
+                  'data-contract': 'forwarded',
+                  onSelectionChange: (value) => {
+                    selected.value = value
+                  },
+                  onSortChange: (value) => {
+                    sortResult.value = `${value.prop}:${value.order}`
+                  }
+                },
+                {
+                  default: () => [
+                    h(ElTableColumn, { type: 'selection', width: 48 }),
+                    h(ElTableColumn, { prop: 'id', label: '编号', width: 100, sortable: true }),
+                    h(
+                      ElTableColumn,
+                      {
+                        prop: 'name',
+                        label: '名称',
+                        minWidth: 200,
+                        className: 'app-data-table__primary'
+                      },
+                      {
+                        default: ({ row }) =>
+                          h('span', { class: 'app-data-table__primary' }, `${row.name} · 已启用`)
+                      }
+                    ),
+                    h(ElTableColumn, { prop: 'description', label: '说明', minWidth: 280 })
+                  ],
+                  empty: () => h(ElEmpty, { imageSize: 64, description: '组件空态已透传' }),
+                  append: () => h('div', { class: 'contract-append' }, '追加区域已透传')
+                }
+              )
+            ])
+        }
+      })
+        .use(ElementPlus)
+        .mount('#app')
+    </script>
+  </body>
+</html>

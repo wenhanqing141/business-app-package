@@ -131,7 +131,7 @@ onMounted(async () => {
 <style scoped>
 .msa-page {
   min-height: 100vh;
-  background: var(--layout-main-bg, #f5f8ff);
+  background: var(--app-page-bg);
 }
 .topbar {
   height: 64px;

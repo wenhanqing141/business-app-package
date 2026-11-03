@@ -1,6 +1,7 @@
 <template>
   <div
     class="menu-tree-wrap"
+    :class="{ 'is-search-empty': !anyMatch }"
     @mousemove="onTreeMouseMove"
     @mouseleave="onTreeMouseLeave"
   >
@@ -56,14 +57,15 @@
     </el-menu>
 
     <!-- 搜索无结果（设计稿：64×64 插图 + 「搜索暂无结果」，整体在树区垂直 / 水平居中） -->
-    <div v-if="!anyMatch" class="tree-empty-search">
-      <svg class="tes-icon" viewBox="0 0 64 64" width="64" height="64" aria-hidden="true">
-        <circle cx="28" cy="28" r="17" fill="none" stroke="#C5C6C9" stroke-width="3" />
-        <path d="M40.5 40.5 L53 53" stroke="#C5C6C9" stroke-width="3" stroke-linecap="round" />
-        <path d="M20 28 C23 24.5 27 23 32 23" fill="none" stroke="#E5EDFF" stroke-width="3" stroke-linecap="round" />
-      </svg>
-      <div class="tes-text">搜索暂无结果</div>
-    </div>
+    <el-empty
+      v-if="!anyMatch"
+      class="tree-empty-search"
+      image="/unit-search-empty.png"
+      :image-size="64"
+      description="搜索暂无结果"
+      role="status"
+      aria-live="polite"
+    />
 
     <!-- 排序模式：所有分组之后的落位区（应用 = 移到分组外；分组 = 置于顶级末尾）。 -->
     <div
@@ -258,6 +260,9 @@ function onRootDrop() {
   flex: 1;
   min-height: 0;
 }
+.menu-tree-wrap.is-search-empty {
+  min-height: calc(64px + var(--spacing-sm) + var(--line-height-text-md));
+}
 .menu-tree {
   padding: 0 16px;
   border-right: 0;
@@ -275,25 +280,21 @@ function onRootDrop() {
   padding: 12px 8px;
 }
 
-/* 搜索无结果（设计稿：64×64 插图 + 文案，整块在树区垂直 / 水平居中） */
-.tree-empty-search {
+/* 搜索无结果：复用提供的 64×64 插图，整组相对树区居中。 */
+.menu-tree-wrap .tree-empty-search {
+  --el-empty-description-margin-top: var(--spacing-sm);
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
+  inset: 0;
+  padding: 0;
   pointer-events: none;
 }
-.tes-icon {
-  display: block;
+.tree-empty-search :deep(.el-empty__image) {
+  height: 64px;
+  flex-shrink: 0;
 }
-.tes-text {
-  font-size: 14px;
+.tree-empty-search :deep(.el-empty__description p) {
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-text-md);
   color: var(--text-3);
 }
 

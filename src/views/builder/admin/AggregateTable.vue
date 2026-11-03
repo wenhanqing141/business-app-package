@@ -1,8 +1,8 @@
 <template>
-  <div class="agg-page ai-surface-page" v-loading="loading">
+  <div v-loading="loading" class="agg-page ai-surface-page">
     <div class="page-head">
       <span class="page-title">首页</span>
-      <el-button type="primary" @click="createDialog = true">
+      <el-button type="primary" @click="openCreate">
         <AppIcon class="el-icon--left" name="添加" :size="16" />新建聚合表
       </el-button>
     </div>
@@ -67,34 +67,58 @@
 
     <el-empty v-if="!list.length && !loading" description="暂无聚合表，点击右上角新建" />
 
-    <!-- 新建聚合表 -->
-    <el-dialog v-model="createDialog" title="新建聚合表" width="480px">
-      <el-form label-width="80px">
-        <el-form-item label="名称" required>
-          <el-input v-model="form.name" placeholder="请输入聚合表名称" maxlength="30" />
-        </el-form-item>
-        <el-form-item label="聚合">
-          <el-input v-model="form.aggText" placeholder="聚合字段，多个用逗号分隔" />
-        </el-form-item>
-        <el-form-item label="根据">
-          <el-input v-model="form.byText" placeholder="关联条件，多个用逗号分隔" />
-        </el-form-item>
-        <el-form-item label="计算">
-          <el-input v-model="form.calcText" placeholder="计算公式，多个用逗号分隔" />
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="createDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitCreate">创建</el-button>
+    <AppDialog
+      v-model="createDialog"
+      title="新建聚合表"
+      description="填写名称，按需设置聚合字段、关联条件和计算公式"
+      confirm-text="创建"
+      :submit="submitCreate"
+    >
+      <template #default="{ submit, submitting }">
+        <el-form
+          ref="formRef"
+          :model="form"
+          :rules="formRules"
+          label-position="top"
+          :disabled="submitting"
+          @submit.prevent="submit"
+        >
+          <el-form-item label="名称" prop="name" required>
+            <el-input
+              v-model="form.name"
+              placeholder="请输入聚合表名称"
+              maxlength="30"
+              show-word-limit
+            />
+          </el-form-item>
+          <el-form-item label="聚合字段"
+            ><el-input v-model="form.aggText" placeholder="多个字段用逗号分隔"
+          /></el-form-item>
+          <el-form-item label="关联条件"
+            ><el-input v-model="form.byText" placeholder="多个条件用逗号分隔"
+          /></el-form-item>
+          <el-form-item label="计算公式"
+            ><el-input v-model="form.calcText" placeholder="多个公式用逗号分隔"
+          /></el-form-item>
+        </el-form>
       </template>
-    </el-dialog>
+    </AppDialog>
+    <AppDialog
+      v-model="deleteDialog.show"
+      title="删除聚合表"
+      :description="`确认删除聚合表「${deleteDialog.row?.name || ''}」？`"
+      confirm-text="删除"
+      danger
+      :submit="confirmDelete"
+    />
   </div>
 </template>
 
 <script setup>
 import { onMounted, reactive, ref } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import AppIcon from '@/components/icons/AppIcon.vue'
+import AppDialog from '@/components/AppDialog.vue'
 import {
   fetchAggregateTables,
   createAggregateTable,
@@ -104,7 +128,16 @@ import {
 
 const loading = ref(false)
 const list = ref([])
+const formRef = ref(null)
+const formRules = {
+  name: [{ required: true, whitespace: true, message: '请输入聚合表名称', trigger: 'blur' }]
+}
 const createDialog = ref(false)
+const deleteDialog = reactive({ show: false, row: null })
+function openCreate() {
+  Object.assign(form, { name: '', aggText: '', byText: '', calcText: '' })
+  createDialog.value = true
+}
 const form = reactive({ name: '', aggText: '', byText: '', calcText: '' })
 
 async function load() {
@@ -117,14 +150,14 @@ async function load() {
 }
 
 async function submitCreate() {
-  if (!form.name.trim()) return ElMessage.warning('请输入名称')
+  if (!(await formRef.value.validate().catch(() => false))) return false
   const split = (s) =>
     s
       .split(/[,，]/)
       .map((x) => x.trim())
       .filter(Boolean)
   await createAggregateTable({
-    name: form.name,
+    name: form.name.trim(),
     agg: split(form.aggText) || ['聚合字段'],
     by: split(form.byText) || ['关联条件'],
     calc: split(form.calcText) || ['公式']
@@ -154,18 +187,11 @@ async function onToggle(item) {
   Object.assign(item, data)
   ElMessage.success(data.enabled ? '已启用' : '已停用')
 }
-async function onDelete(item) {
-  try {
-    await ElMessageBox.confirm(`确认删除聚合表「${item.name}」？`, '删除', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      confirmButtonClass: 'delete-confirm-button'
-    })
-  } catch {
-    return
-  }
-  await deleteAggregateTable(item.id)
+function onDelete(item) {
+  Object.assign(deleteDialog, { show: true, row: item })
+}
+async function confirmDelete() {
+  await deleteAggregateTable(deleteDialog.row.id)
   ElMessage.success('已删除')
   load()
 }

@@ -1,7 +1,7 @@
 // 微服务应用管理 + 业务应用包搭建工作台 / 应用后台 接口（PRD v1.0 + 九张线框图）
 import {
   PACKAGES, MSA_APPS, GROUPS, APPS, USER_MANAGE_ROLES, PERMISSIONS,
-  PERMISSION_GROUPS, MARKET_APPS, AGGREGATE_TABLES, BUSINESS_FLOWS,
+  PERMISSION_GROUPS, PERM_GROUP_NAMES, MARKET_APPS, AGGREGATE_TABLES, BUSINESS_FLOWS,
   DATA_FLOWS, SYNC_TABLES, ENGINE_MAP, BACKEND_CONVERTIBLE, PERM_GROUP_REQUIRED,
   UNITS, CURRENT_USER
 } from './pkgSeed'
@@ -33,14 +33,17 @@ function appEntry(a) {
   return a.appId ? a : { ...a, appId: a.id }
 }
 
-// 应用权限组（按应用隔离；首次访问时用默认模板初始化）
+// 应用和权限组分别隔离；省略 groupName 的既有调用仍访问默认权限组。
 const appPermStore = {}
-function cloneDefaultGroup() {
-  return JSON.parse(JSON.stringify(PERMISSION_GROUPS[0]))
-}
-function getAppPermGroup(appId) {
-  if (!appPermStore[appId]) appPermStore[appId] = cloneDefaultGroup()
-  return appPermStore[appId]
+function getAppPermGroup(appId, groupName = PERM_GROUP_NAMES[0]) {
+  const key = JSON.stringify([appId, groupName])
+  if (!appPermStore[key]) {
+    const group = JSON.parse(JSON.stringify(PERMISSION_GROUPS[0]))
+    group.id = `${group.id}-${PERM_GROUP_NAMES.indexOf(groupName)}`
+    group.name = groupName
+    appPermStore[key] = group
+  }
+  return appPermStore[key]
 }
 
 // 菜单权限（勾选式）：仅记录"已配置角色"及其勾选的**入口 id**（2026-10-11：按入口逐条勾选，不去重）；点「确定」保存即生效
@@ -654,11 +657,15 @@ const endpoints = [
   {
     url: '/api/builder/app/:id/perm-group',
     method: 'get',
-    response: ({ query }) => {
-      const app = APPS.find((a) => a.id === query.id)
+    response: ({ query, url }) => {
+      // vite-plugin-mock preserves query strings instead of merging path params on GET.
+      const appId = query.id || decodeURIComponent(url.split('?')[0].split('/').at(-2))
+      const app = APPS.find((a) => (a.appId || a.id) === appId || a.id === appId)
       if (!app) return { code: 404, data: null, message: '应用不存在' }
+      const groupName = query.groupName || PERM_GROUP_NAMES[0]
+      if (!PERM_GROUP_NAMES.includes(groupName)) return { code: 1002, data: null, message: '权限组不存在' }
       const key = app.appId || app.id
-      return { code: 0, data: { appId: key, appName: app.name, group: getAppPermGroup(key) }, message: 'ok' }
+      return { code: 0, data: { appId: key, appName: app.name, group: getAppPermGroup(key, groupName) }, message: 'ok' }
     }
   },
 
@@ -667,9 +674,11 @@ const endpoints = [
     url: '/api/builder/app/:id/perm-group',
     method: 'put',
     response: ({ query, body }) => {
-      const app = APPS.find((a) => a.id === query.id)
+      const app = APPS.find((a) => (a.appId || a.id) === query.id || a.id === query.id)
       if (!app) return { code: 404, data: null, message: '应用不存在' }
-      const group = getAppPermGroup(app.appId || app.id)
+      const groupName = body.groupName || PERM_GROUP_NAMES[0]
+      if (!PERM_GROUP_NAMES.includes(groupName)) return { code: 1002, data: null, message: '权限组不存在' }
+      const group = getAppPermGroup(app.appId || app.id, groupName)
       if (body.action === 'create-group') {
         // 演示中权限组模板唯一，接口保留扩展位
         return { code: 0, data: { group }, message: '已新建权限组（演示环境沿用默认权限组模板）' }
@@ -677,6 +686,7 @@ const endpoints = [
       if (body.action === 'add-role') {
         if (!body.roleId) return { code: 1002, data: null, message: '请选择角色' }
         const role = USER_MANAGE_ROLES.find((r) => r.id === body.roleId)
+        if (!role) return { code: 404, data: null, message: '角色不存在' }
         if (group.roles.some((r) => r.key === body.roleId || r.label === role?.name)) {
           return { code: 1014, data: null, message: '该角色已在权限组中' }
         }

@@ -1,5 +1,5 @@
 <template>
-  <div class="flow-page ai-surface-page" v-loading="loading">
+  <div v-loading="loading" class="flow-page ai-surface-page">
     <!-- 标题 + 说明 + 新建 -->
     <div class="page-head">
       <div>
@@ -11,7 +11,7 @@
           <AppIcon class="info-icon" name="info" :size="16" />
         </AppTooltip>
       </div>
-      <el-button type="primary" @click="createDialog = true">
+      <el-button type="primary" @click="openCreate">
         <AppIcon class="el-icon--left" name="添加" :size="16" />新建业务流程
       </el-button>
     </div>
@@ -121,31 +121,59 @@
       </div>
     </el-card>
 
-    <!-- 新建业务流程 -->
-    <el-dialog v-model="createDialog" title="新建业务流程" width="460px">
-      <el-form label-width="92px">
-        <el-form-item label="流程名称" required>
-          <el-input v-model="form.name" placeholder="请输入业务流程名称" maxlength="30" />
-        </el-form-item>
-        <el-form-item label="触发方式">
-          <el-radio-group v-model="form.trigger">
-            <el-radio value="event">表单/审批事件触发</el-radio>
-            <el-radio value="timer">定时触发</el-radio>
-          </el-radio-group>
-        </el-form-item>
-      </el-form>
-      <template #footer>
-        <el-button @click="createDialog = false">取消</el-button>
-        <el-button type="primary" @click="submitCreate">创建</el-button>
+    <AppDialog
+      v-model="createDialog"
+      title="新建业务流程"
+      description="填写流程名称，并选择业务流程的触发方式"
+      confirm-text="创建"
+      :submit="submitCreate"
+    >
+      <template #default="{ submit, submitting }">
+        <el-form
+          ref="formRef"
+          :model="form"
+          :rules="formRules"
+          label-position="top"
+          :disabled="submitting"
+          @submit.prevent="submit"
+        >
+          <el-form-item label="流程名称" prop="name" required>
+            <el-input
+              v-model="form.name"
+              placeholder="请输入业务流程名称"
+              maxlength="30"
+              show-word-limit
+            />
+          </el-form-item>
+          <el-form-item label="触发方式">
+            <el-radio-group
+              v-model="form.trigger"
+              class="app-dialog-scope-options"
+              aria-label="触发方式"
+            >
+              <el-radio value="event" border>表单 / 审批事件触发</el-radio>
+              <el-radio value="timer" border>定时触发</el-radio>
+            </el-radio-group>
+          </el-form-item>
+        </el-form>
       </template>
-    </el-dialog>
+    </AppDialog>
+    <AppDialog
+      v-model="deleteDialog.show"
+      title="删除业务流程"
+      :description="`确认删除业务流程「${deleteDialog.row?.name || ''}」？`"
+      confirm-text="删除"
+      danger
+      :submit="confirmDelete"
+    />
   </div>
 </template>
 
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
-import { ElMessage, ElMessageBox } from 'element-plus'
+import { ElMessage } from 'element-plus'
 import AppIcon from '@/components/icons/AppIcon.vue'
+import AppDialog from '@/components/AppDialog.vue'
 import {
   fetchBusinessFlows,
   createBusinessFlow,
@@ -163,7 +191,16 @@ const filterStatus = ref('all')
 const filterName = ref('')
 const page = ref(1)
 
+const formRef = ref(null)
+const formRules = {
+  name: [{ required: true, whitespace: true, message: '请输入流程名称', trigger: 'blur' }]
+}
 const createDialog = ref(false)
+const deleteDialog = reactive({ show: false, row: null })
+function openCreate() {
+  Object.assign(form, { name: '', trigger: triggerTab.value })
+  createDialog.value = true
+}
 const form = reactive({ name: '', trigger: 'event' })
 
 const filteredList = computed(() =>
@@ -188,8 +225,8 @@ async function load() {
 }
 
 async function submitCreate() {
-  if (!form.name.trim()) return ElMessage.warning('请输入流程名称')
-  await createBusinessFlow({ name: form.name, trigger: form.trigger })
+  if (!(await formRef.value.validate().catch(() => false))) return false
+  await createBusinessFlow({ name: form.name.trim(), trigger: form.trigger })
   createDialog.value = false
   triggerTab.value = form.trigger
   form.name = ''
@@ -203,18 +240,11 @@ async function onToggle(row) {
   ElMessage.success(data.enabled ? '已启用' : '已停用')
 }
 
-async function onDelete(row) {
-  try {
-    await ElMessageBox.confirm(`确认删除业务流程「${row.name}」？`, '删除', {
-      type: 'warning',
-      confirmButtonText: '删除',
-      cancelButtonText: '取消',
-      confirmButtonClass: 'delete-confirm-button'
-    })
-  } catch {
-    return
-  }
-  await deleteBusinessFlow(row.id)
+function onDelete(row) {
+  Object.assign(deleteDialog, { show: true, row })
+}
+async function confirmDelete() {
+  await deleteBusinessFlow(deleteDialog.row.id)
   ElMessage.success('已删除')
   load()
 }

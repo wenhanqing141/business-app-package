@@ -3,7 +3,7 @@
     <!-- ============ 顶栏：左上「业务应用包」/ 右上 头像 + 姓名 + 当前单位 ============ -->
     <header class="pm-header">
       <div class="pm-brand">
-        <img class="pm-logo-mark" src="/figma-chaoxing-logo.png" alt="" />
+        <img class="pm-logo-mark" src="/business-package-icon.png" alt="" />
         <img class="pm-logo-wordmark" src="/figma-business-package-logo.svg" alt="业务应用包" />
       </div>
 
@@ -140,33 +140,50 @@
     <!-- ============ 切换单位：复用 Element Dialog，单位作为一组连续列表展示 ============ -->
     <el-dialog
       v-model="unitDialog"
-      width="480px"
+      width="600px"
       append-to-body
       align-center
       title="切换单位"
       class="pm-dialog pm-unit-dialog"
+      @open="unitKeyword = ''"
     >
+      <PackageSearchInput
+        v-model="unitKeyword"
+        class="unit-search"
+        placeholder="搜索单位名称"
+        aria-label="搜索单位名称"
+      />
       <el-scrollbar class="unit-list-scroll" always>
-        <div class="unit-list">
+        <div v-if="filteredUnits.length" class="unit-list">
           <el-button
-            v-for="u in units"
+            v-for="u in filteredUnits"
             :key="u.fid"
             text
             native-type="button"
             class="unit-item"
             :class="{ active: u.fid === currentFid }"
+            :aria-pressed="u.fid === currentFid"
             @click="switchUnit(u)"
           >
-            <span class="u-name">{{ u.name }}</span>
+            <span class="u-name">
+              <span
+                v-for="(part, index) in unitNameParts(u.name)"
+                :key="index"
+                :class="{ 'u-name-match': part.matched }"
+              >{{ part.text }}</span>
+            </span>
             <RiCheckboxCircleFill v-if="u.fid === currentFid" class="u-check" aria-label="当前单位" />
           </el-button>
         </div>
+        <el-empty
+          v-else
+          class="unit-search-empty"
+          image="/unit-search-empty.png"
+          :image-size="64"
+          :description="unitKeyword.trim() ? '暂无搜索结果' : '暂无可切换单位'"
+          role="status"
+        />
       </el-scrollbar>
-      <template #footer>
-        <div class="dlg-foot">
-          <el-button class="pm-dialog-cancel" plain @click="unitDialog = false">取消</el-button>
-        </div>
-      </template>
     </el-dialog>
 
     <!-- ============ 删除应用包：需完整输入应用包名称 ============ -->
@@ -247,6 +264,7 @@ const currentFid = ref('')
 
 const createDialog = ref(false)
 const unitDialog = ref(false)
+const unitKeyword = ref('')
 const delDialog = reactive({ show: false, pkg: {}, input: '' })
 
 const currentUnitName = computed(
@@ -256,6 +274,28 @@ const filtered = computed(() => {
   const kw = keyword.value.trim()
   return kw ? pkgs.value.filter((p) => p.name.includes(kw)) : pkgs.value
 })
+const filteredUnits = computed(() => {
+  const kw = unitKeyword.value.trim().toLocaleLowerCase()
+  return kw ? units.value.filter((u) => u.name.toLocaleLowerCase().includes(kw)) : units.value
+})
+
+function unitNameParts(name) {
+  const kw = unitKeyword.value.trim().toLocaleLowerCase()
+  if (!kw) return [{ text: name, matched: false }]
+
+  const normalizedName = name.toLocaleLowerCase()
+  const parts = []
+  let start = 0
+  let match = normalizedName.indexOf(kw)
+  while (match !== -1) {
+    if (match > start) parts.push({ text: name.slice(start, match), matched: false })
+    parts.push({ text: name.slice(match, match + kw.length), matched: true })
+    start = match + kw.length
+    match = normalizedName.indexOf(kw, start)
+  }
+  if (start < name.length) parts.push({ text: name.slice(start), matched: false })
+  return parts
+}
 
 async function loadUnits() {
   const d = await fetchManageUnits()
@@ -353,7 +393,7 @@ async function confirmDelete() {
   height: 100vh;
   display: flex;
   flex-direction: column;
-  background: #f5f8ff;
+  background: var(--app-page-bg);
   overflow: hidden;
 }
 .pm-page :deep(.el-button) {
@@ -732,15 +772,16 @@ async function confirmDelete() {
   color: var(--text-1);
 }
 
-/* 单位列表 */
+/* 边框固定在滚动区域外层，内部仅滚动单位条目。 */
+.unit-list-scroll {
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-md);
+}
 .unit-list {
   width: 100%;
   display: flex;
   flex-direction: column;
   gap: 0;
-  overflow: hidden;
-  border: 1px solid var(--border-2);
-  border-radius: var(--radius-md);
 }
 .unit-item.el-button {
   display: flex;
@@ -785,6 +826,9 @@ async function confirmDelete() {
 }
 .u-name {
   flex: 1;
+}
+.u-name-match {
+  color: var(--brand-1);
 }
 .u-check {
   display: inline-flex;
@@ -987,42 +1031,43 @@ async function confirmDelete() {
   padding: 24px;
   text-align: right;
 }
+.pm-dialog.pm-unit-dialog {
+  height: 600px;
+  max-width: calc(100vw - var(--spacing-2xl));
+}
 .pm-dialog.pm-unit-dialog .el-dialog__body {
   display: flex;
+  flex-direction: column;
   flex: 1 1 auto;
   min-height: 0;
-  padding-bottom: 0;
+  gap: var(--spacing-lg);
   overflow: hidden;
+}
+.pm-unit-dialog .unit-search {
+  flex: none;
 }
 .pm-unit-dialog .unit-list-scroll {
   flex: 1 1 auto;
   min-height: 0;
-  max-height: 100%;
 }
-.pm-unit-dialog .unit-list-scroll .el-scrollbar__wrap {
-  overflow-x: hidden !important;
-  overflow-y: auto !important;
-}
-.pm-unit-dialog .unit-list-scroll .el-scrollbar__bar.is-horizontal {
-  display: none;
-}
-.pm-unit-dialog .dlg-foot {
+.pm-unit-dialog .unit-list-scroll .el-scrollbar__view {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  min-height: 100%;
 }
-.pm-unit-dialog .pm-dialog-cancel {
-  min-width: 88px;
-  height: 36px;
-  padding: 0 16px;
-  color: var(--text-1);
-  border-color: var(--border-2);
-  background: var(--fill-1);
+.pm-unit-dialog .unit-list {
+  flex: none;
 }
-.pm-unit-dialog .pm-dialog-cancel:hover,
-.pm-unit-dialog .pm-dialog-cancel:focus-visible {
+.pm-unit-dialog .unit-search-empty {
+  flex: 1;
+  padding: 0;
+  --el-empty-description-margin-top: var(--spacing-sm);
+}
+.pm-unit-dialog .unit-search-empty .el-empty__image {
+  height: 64px;
+}
+.pm-unit-dialog .unit-search-empty .el-empty__description p {
   color: var(--text-1);
-  border-color: var(--border-4);
-  background: var(--fill-2);
 }
 .pm-create-dialog .el-dialog__title {
   color: var(--text-1);

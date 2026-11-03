@@ -419,7 +419,7 @@ function onRowDragLeave(e) {
   margin-left: auto;
   padding: 0;
   opacity: 0;
-  color: var(--text-3);
+  color: var(--text-1);
   border-radius: var(--radius-sm);
   flex-shrink: 0;
   transition:
@@ -430,7 +430,7 @@ function onRowDragLeave(e) {
   opacity: 1;
 }
 .more:hover {
-  color: var(--brand-1);
+  color: var(--text-1);
   background: var(--brand-7);
 }
 .empty-hint.el-menu-item.is-disabled {

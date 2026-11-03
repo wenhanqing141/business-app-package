@@ -158,7 +158,22 @@ export const PRESET_ICONS = [
 export const UNITS = [
   { fid: '10001', name: '北京师范大学第二附属中学', isSuperAdmin: true },
   { fid: '10002', name: '北京师范大学附属实验中学', isSuperAdmin: true },
-  { fid: '10003', name: '北京师范大学第三附属中学', isSuperAdmin: false }
+  { fid: '10003', name: '北京师范大学第三附属中学', isSuperAdmin: false },
+  { fid: '10004', name: '北京市第一中学', isSuperAdmin: true },
+  { fid: '10005', name: '北京市第二中学', isSuperAdmin: true },
+  { fid: '10006', name: '北京市第四中学', isSuperAdmin: true },
+  { fid: '10007', name: '北京市第五中学', isSuperAdmin: true },
+  { fid: '10008', name: '北京市第八中学', isSuperAdmin: true },
+  { fid: '10009', name: '北京市第十一中学', isSuperAdmin: true },
+  { fid: '10010', name: '北京市第十二中学', isSuperAdmin: true },
+  { fid: '10011', name: '北京市第十五中学', isSuperAdmin: true },
+  { fid: '10012', name: '北京市第三十五中学', isSuperAdmin: true },
+  { fid: '10013', name: '北京市第一零一中学', isSuperAdmin: true },
+  { fid: '10014', name: '北京市第一六一中学', isSuperAdmin: true },
+  { fid: '10015', name: '北京市第六十六中学', isSuperAdmin: true },
+  { fid: '10016', name: '北京市朝阳外国语学校', isSuperAdmin: true },
+  { fid: '10017', name: '北京市海淀实验中学', isSuperAdmin: true },
+  { fid: '10018', name: '北京市丰台实验学校', isSuperAdmin: true }
 ]
 
 // 当前登录用户（Demo 固定；正式环境取 passport 登录态）
@@ -358,13 +373,36 @@ export const USER_MANAGE_ROLES = [
   { id: 'r-hq', name: '后勤管理员', members: 3, scope: '全校后勤' },
   { id: 'r-wx', name: '维修工程师', members: 8, scope: '后勤保障组' },
   { id: 'r-js', name: '教师', members: 126, scope: '各院系' },
-  { id: 'r-xs', name: '学生', members: 2310, scope: '全体在校学生' }
+  { id: 'r-xs', name: '学生', members: 2310, scope: '全体在校学生' },
+  { id: 'r-dept-admin', name: '院系管理员', members: 18, scope: '各院系' },
+  { id: 'r-it-admin', name: '信息中心管理员', members: 6, scope: '信息中心' },
+  { id: 'r-asset-admin', name: '资产管理员', members: 12, scope: '资产管理处' },
+  { id: 'r-warehouse-admin', name: '仓库管理员', members: 5, scope: '后勤仓库' },
+  { id: 'r-purchasing', name: '采购专员', members: 7, scope: '采购中心' },
+  { id: 'r-finance-reviewer', name: '财务审核员', members: 9, scope: '财务处' },
+  { id: 'r-property-supervisor', name: '物业主管', members: 4, scope: '校园物业' },
+  { id: 'r-dorm-admin', name: '宿舍管理员', members: 24, scope: '学生公寓' },
+  { id: 'r-security', name: '安保人员', members: 36, scope: '校园安保' },
+  { id: 'r-canteen-admin', name: '食堂管理员', members: 8, scope: '餐饮服务中心' },
+  { id: 'r-cleaning-supervisor', name: '保洁主管', members: 6, scope: '校园保洁' },
+  { id: 'r-energy-admin', name: '能源管理员', members: 4, scope: '水电能源中心' },
+  { id: 'r-vehicle-admin', name: '车辆管理员', members: 5, scope: '车辆服务中心' },
+  { id: 'r-equipment-admin', name: '设备管理员', members: 16, scope: '设备管理中心' },
+  { id: 'r-maintenance-supervisor', name: '维修主管', members: 4, scope: '后勤维修中心' },
+  { id: 'r-inspector', name: '巡检人员', members: 20, scope: '校园设施巡检' },
+  { id: 'r-repair-dispatcher', name: '报修受理员', members: 6, scope: '报修服务台' },
+  { id: 'r-logistics-director', name: '后勤负责人', members: 3, scope: '后勤管理处' },
+  { id: 'r-auditor', name: '审计人员', members: 5, scope: '审计处' },
+  { id: 'r-campus-service', name: '校园服务专员', members: 10, scope: '校园服务中心' }
 ]
+
+// 权限设置默认演示 15 个角色；用户后续增删不受此数量限制。
+const DEFAULT_PERMISSION_ROLE_COUNT = 15
 
 // 菜单权限（5.16 第一部分：分组 / 应用可见；2026-10-11 起点「确定」保存即生效，无需发布）
 // pkg: 'editable' 可编辑 | 'visible' 可见 | 'none' 不可见；apps 按应用覆盖
 // 同时供前台角色交集 / 可见性演示（portal mock 消费）
-export const PERMISSIONS = [
+const MENU_PERMISSION_DEFAULTS = [
   {
     roleId: 'r-hq',
     pkg: 'editable',
@@ -395,8 +433,15 @@ export const PERMISSIONS = [
     pkg: 'visible',
     apps: { 'app-ff': 'editable', 'app-3': 'visible' }
   }
-  // r-xs（学生）未配置 → 无任何权限，前台不可见
 ]
+
+export const PERMISSIONS = USER_MANAGE_ROLES.slice(0, DEFAULT_PERMISSION_ROLE_COUNT).map(
+  (role) => MENU_PERMISSION_DEFAULTS.find((permission) => permission.roleId === role.id) || {
+    roleId: role.id,
+    pkg: 'none',
+    apps: {}
+  }
+)
 
 // 应用权限组（5.16 第二部分 + 线框 6：默认权限组；数据 / 字段 / 功能 / 其他四类权限，自动保存）
 // scope: all 全部数据 | filter 符合筛选条件 | self 仅本人相关
@@ -426,7 +471,25 @@ export const PERMISSION_GROUPS = [
         desc: '授权为符合筛选条件的数据',
         removable: true,
         scopes: { data: 'filter', field: 'all', func: 'all', other: 'all' }
-      }
+      },
+      // 连同「其他」「超级管理员」两个条目，默认共显示 15 个角色。
+      ...[
+        'r-wx', 'r-hq', 'r-asset-admin',
+        'r-warehouse-admin', 'r-purchasing', 'r-finance-reviewer',
+        'r-property-supervisor', 'r-dorm-admin', 'r-security',
+        'r-canteen-admin', 'r-cleaning-supervisor', 'r-energy-admin',
+        'r-vehicle-admin', 'r-equipment-admin', 'r-maintenance-supervisor',
+        'r-inspector', 'r-repair-dispatcher', 'r-logistics-director'
+      ].slice(0, DEFAULT_PERMISSION_ROLE_COUNT - 2).map((id) => {
+        const role = USER_MANAGE_ROLES.find((item) => item.id === id)
+        return {
+          key: role.id,
+          label: role.name,
+          desc: '授权为符合筛选条件的数据',
+          removable: true,
+          scopes: { data: 'filter', field: 'all', func: 'all', other: 'all' }
+        }
+      })
     ]
   }
 ]
