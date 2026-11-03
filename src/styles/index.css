@@ -285,6 +285,10 @@ a {
   font-weight: var(--font-weight-medium);
   box-shadow: none;
 }
+/* 后台弹窗的主题色按钮在所有状态下均不绘制描边。 */
+.app-dialog .el-button--primary {
+  border: 0;
+}
 .app-dialog-actions .el-button:not(.el-button--primary):not(.el-button--danger) {
   --el-button-text-color: var(--text-1);
   --el-button-bg-color: var(--fill-1);

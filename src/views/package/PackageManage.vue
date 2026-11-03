@@ -453,7 +453,7 @@ async function confirmDelete() {
   transition: background var(--motion-hover);
 }
 .pm-user:hover {
-  background: var(--color-bg-container);
+  background: var(--fill-2);
 }
 .avatar {
   width: 28px;
