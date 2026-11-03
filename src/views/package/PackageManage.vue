@@ -178,7 +178,7 @@
         <el-empty
           v-else
           class="unit-search-empty"
-          image="/unit-search-empty.png"
+          :image="unitSearchEmptyImage"
           :image-size="64"
           :description="unitKeyword.trim() ? '暂无搜索结果' : '暂无可切换单位'"
           role="status"
@@ -251,6 +251,8 @@ import PackageIcon from '@/components/icons/PackageIcon.vue'
 import PackageSearchInput from '@/components/PackageSearchInput.vue'
 import { fetchManageUnits, fetchPkgList, deletePkg } from '@/api/appPackage'
 import { setPkgVersion } from '@/api/pkgVersion'
+
+const unitSearchEmptyImage = `${import.meta.env.BASE_URL}unit-search-empty.png`
 
 const router = useRouter()
 

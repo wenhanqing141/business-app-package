@@ -60,7 +60,7 @@
     <el-empty
       v-if="!anyMatch"
       class="tree-empty-search"
-      image="/unit-search-empty.png"
+      :image="unitSearchEmptyImage"
       :image-size="64"
       description="搜索暂无结果"
       role="status"
@@ -108,6 +108,8 @@ import GroupNode from './MenuGroupNode.vue'
 import AppNode from './MenuAppNode.vue'
 import AppIcon from '@/components/icons/AppIcon.vue'
 import EngineIcon from '@/components/icons/EngineIcon.vue'
+
+const unitSearchEmptyImage = `${import.meta.env.BASE_URL}unit-search-empty.png`
 
 const props = defineProps({
   groups: { type: Array, default: () => [] },

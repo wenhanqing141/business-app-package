@@ -58,7 +58,7 @@
               <template #empty>
                 <el-empty
                   class="menu-permission-empty"
-                  image="/menu-role-empty.svg"
+                  :image="menuRoleEmptyImage"
                   :image-size="100"
                   description="暂无已配置角色，请先添加角色"
                 />
@@ -154,7 +154,7 @@
               <el-empty
                 v-else-if="appKeyword.trim()"
                 class="application-search-empty"
-                image="/unit-search-empty.png"
+                :image="unitSearchEmptyImage"
                 :image-size="64"
                 description="搜索暂无结果"
                 role="status"
@@ -337,7 +337,7 @@
                 <template #empty>
                   <el-empty
                     class="menu-tree-search-empty"
-                    image="/unit-search-empty.png"
+                    :image="unitSearchEmptyImage"
                     :image-size="64"
                     description="暂无搜索结果"
                     role="status"
@@ -512,6 +512,9 @@ import PackageSearchInput from '@/components/PackageSearchInput.vue'
 import BaseSelect from '@/components/BaseSelect.vue'
 import { setPkgVersion } from '@/api/pkgVersion'
 import { PERM_GROUP_NAMES } from '@/mock/pkgSeed'
+
+const unitSearchEmptyImage = `${import.meta.env.BASE_URL}unit-search-empty.png`
+const menuRoleEmptyImage = `${import.meta.env.BASE_URL}menu-role-empty.svg`
 
 const loading = ref(false)
 const pageError = ref('')
