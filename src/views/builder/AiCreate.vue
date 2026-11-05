@@ -24,6 +24,7 @@
           'processing-state': busy,
           'intake-state': phase === 'intake',
           'analysis-state': phase === 'analysis',
+          'question-active': questionDockOpen,
           'conversation-state': !isHero
         }
       ]"
@@ -135,11 +136,18 @@
                 <p class="ac-card-text">{{ m.sub }}</p>
               </div>
 
-              <!-- ② 合并追问：一次补齐业务分析所需信息 -->
+              <!-- 待回答时仅显示状态，问题在底部替换输入区。 -->
+              <div v-else-if="m.type === 'ask-group' && !m.submitted" class="ac-question-status" role="status">
+                <RiQuestionFill :size="16" aria-hidden="true" />
+                <span>需要补充需求信息，等待你的回答</span>
+                <el-button v-if="questionDismissed" link type="primary" @click="openQuestionDock">
+                  继续回答
+                </el-button>
+              </div>
               <el-collapse
                 v-else-if="m.type === 'ask-group'"
-                class="ac-card ask ask-group ac-collapse"
-                :class="{ 'is-open': !m.collapsed, 'is-answered': m.submitted }"
+                class="ac-card ask ask-group ac-collapse is-answered"
+                :class="{ 'is-open': !m.collapsed }"
                 :model-value="m.collapsed ? [] : ['content']"
                 @update:model-value="syncAskCollapse(m, $event)"
               >
@@ -147,66 +155,13 @@
                   <template #title>
                     <div class="ac-card-head">
                       <RiQuestionFill class="ac-ask-head-icon" :size="20" aria-hidden="true" />
-                      <span class="ac-ask-heading">
-                        <span class="ac-ask-title">{{
-                          m.submitted ? '已收集的信息' : '补充关键信息'
-                        }}</span>
-                      </span>
+                      <span class="ac-ask-title">已收集的信息</span>
                     </div>
                   </template>
                   <template #icon>
                     <RiArrowDownSLine class="ac-collapse-icon" aria-hidden="true" />
                   </template>
-                  <div v-if="!m.submitted" class="ac-ask-group-fields">
-                    <section v-for="(q, qIndex) in m.questions" :key="q.id" class="ac-ask-item">
-                      <div class="ac-ask-question-head">
-                        <span class="ac-ask-index">{{ String(qIndex + 1).padStart(2, '0') }}</span>
-                        <div>
-                          <p class="ac-ask-question-title">{{ q.title }}</p>
-                          <p v-if="q.hint" class="ac-ask-question-help">{{ q.hint }}</p>
-                        </div>
-                      </div>
-
-                      <el-radio-group
-                        v-if="q.type === 'single'"
-                        v-model="m.answers[qIndex].value"
-                        class="ac-ask-radio-group"
-                      >
-                        <el-radio-button
-                          v-for="opt in q.options"
-                          :key="opt.label"
-                          :label="opt.label"
-                          >{{ opt.label }}</el-radio-button
-                        >
-                      </el-radio-group>
-
-                      <el-checkbox-group
-                        v-else-if="q.type === 'multi'"
-                        v-model="m.answers[qIndex].picked"
-                        class="ac-checks ac-ask-check-group"
-                      >
-                        <el-checkbox v-for="opt in q.options" :key="opt" :value="opt">{{
-                          opt
-                        }}</el-checkbox>
-                      </el-checkbox-group>
-
-                      <template v-else-if="q.type === 'fill'">
-                        <el-input v-model="m.answers[qIndex].draft" :placeholder="q.placeholder" />
-                      </template>
-                    </section>
-
-                    <div class="ac-ask-submit">
-                      <el-button
-                        type="primary"
-                        :disabled="!askGroupReady(m)"
-                        @click="submitAskGroup(m)"
-                      >
-                        生成业务蓝图
-                      </el-button>
-                    </div>
-                  </div>
-
-                  <div v-else class="ac-card-answered ac-ask-group-answered">
+                  <div class="ac-card-answered ac-ask-group-answered">
                     <ol class="ac-ask-answer-list">
                       <li v-for="(answer, answerIndex) in m.answerSummary" :key="answerIndex">
                         <span class="ac-ask-answer-index">{{
@@ -407,8 +362,56 @@
 
           </el-scrollbar>
 
+          <!-- 逐题补充信息，与输入区共享底部位置。 -->
+          <section v-if="questionDockOpen" class="ac-question-dock" aria-labelledby="ac-question-title" :aria-busy="busy">
+            <div class="ac-question-dock-head">
+              <h2 id="ac-question-title" ref="questionTitleRef" tabindex="-1">
+                {{ currentQuestion.title }}
+                <span v-if="currentQuestion.type !== 'fill'" class="ac-question-kind">
+                  （{{ currentQuestion.type === 'multi' ? '可多选' : '单选' }}）
+                </span>
+              </h2>
+              <el-button text circle aria-label="关闭问题，改用文字回复" @click="dismissQuestionDock">
+                <RiCloseLine :size="18" aria-hidden="true" />
+              </el-button>
+            </div>
+            <el-scrollbar class="ac-question-dock-scroll" max-height="30dvh" always>
+              <div :key="currentQuestion.id" class="ac-question-dock-fields">
+                <p v-if="currentQuestion.hint" class="ac-question-hint">{{ currentQuestion.hint }}</p>
+                <el-radio-group v-if="currentQuestion.type === 'single'"
+                  v-model="activeAsk.answers[questionIndex].value" aria-labelledby="ac-question-title">
+                  <el-radio v-for="opt in currentQuestion.options" :key="opt.label" :value="opt.label">
+                    {{ opt.label }}
+                  </el-radio>
+                </el-radio-group>
+                <el-checkbox-group v-else-if="currentQuestion.type === 'multi'"
+                  v-model="activeAsk.answers[questionIndex].picked" aria-labelledby="ac-question-title">
+                  <el-checkbox v-for="opt in currentQuestion.options" :key="opt" :value="opt">{{ opt }}</el-checkbox>
+                </el-checkbox-group>
+                <el-input v-else v-model="activeAsk.answers[questionIndex].draft"
+                  type="textarea" :rows="3" resize="none" :placeholder="currentQuestion.placeholder"
+                  aria-labelledby="ac-question-title" />
+              </div>
+            </el-scrollbar>
+            <div class="ac-question-dock-footer">
+              <div class="ac-question-pagination">
+                <el-button text circle :disabled="questionIndex === 0 || busy" aria-label="上一题" @click="moveQuestion(-1)">
+                  <RiArrowLeftSLine :size="18" aria-hidden="true" />
+                </el-button>
+                <span role="status" aria-live="polite">{{ questionIndex + 1 }} / {{ activeAsk.questions.length }}</span>
+                <el-button text circle :disabled="!currentQuestionReady || questionIndex === activeAsk.questions.length - 1 || busy"
+                  aria-label="下一题" @click="moveQuestion(1)">
+                  <RiArrowRightSLine :size="18" aria-hidden="true" />
+                </el-button>
+              </div>
+              <el-button type="primary" :disabled="!currentQuestionReady" :loading="busy" @click="continueQuestion">
+                {{ questionIndex === activeAsk.questions.length - 1 ? '生成业务蓝图' : '继续' }}
+              </el-button>
+            </div>
+          </section>
+
           <!-- 输入区：使用 assistant-ui Vue composer primitive 承载文本状态与发送语义 -->
-          <div class="ac-composer" :class="{ 'is-highlight': highlightInput }">
+          <div v-else class="ac-composer" :class="{ 'is-highlight': highlightInput }">
             <AppTooltip v-if="!atBottom" content="新消息" placement="top">
               <el-button class="ac-jump" circle aria-label="新消息" @click="scrollToBottom">
                 <RiArrowDownLine :size="18" aria-hidden="true" />
@@ -599,6 +602,8 @@ import {
   RiAddLine,
   RiArrowDownLine,
   RiArrowLeftLine,
+  RiArrowLeftSLine,
+  RiArrowRightSLine,
   RiArrowDownSLine,
   RiArrowUpLine,
   RiCheckboxCircleFill,
@@ -888,7 +893,7 @@ const canSend = computed(() => inputEnabled.value && composerText.value.trim().l
 const placeholder = computed(() => {
   if (busy.value) return 'AI 正在处理，请稍候…'
   if (phase.value === 'idle') return '描述你要搭建的业务系统，Enter 发送'
-  if (phase.value === 'analysis') return '请补充上方信息，或直接输入整体答复'
+  if (phase.value === 'analysis') return '输入整体答复，或点击「继续回答」逐题补充'
   if (phase.value === 'blueprint') {
     if (bpMode.value === 'revising')
       return '继续输入修改意见，AI 会据此调整蓝图（如：去掉设备巡检，增加一个报销表单）'
@@ -1076,7 +1081,7 @@ async function startCreate(text) {
     sub:
       `调用方式：${analysisSkillNote.value}。` +
       '按 references/comparison-checklist.md 的字段清单与《业务系统蓝图模板》逐项比对，' +
-      '缺失项合并为一张信息补充卡片一次收集；追问不属于确认。'
+      '请在下方逐项补充关键信息，完成后将生成业务蓝图。'
   })
   await sleep(500)
   pushAsk()
@@ -1094,16 +1099,51 @@ function pushAsk() {
   })
   phase.value = 'analysis'
   busy.value = false
-  nextTick(() => focusComposer())
+  questionIndex.value = 0
+  questionDismissed.value = false
+  focusQuestion()
 }
 
+const questionIndex = ref(0)
+const questionDismissed = ref(false)
+const questionTitleRef = ref(null)
+const activeAsk = computed(() => phase.value === 'analysis'
+  ? [...messages.value].reverse().find((m) => m.type === 'ask-group' && !m.submitted)
+  : null)
+const questionDockOpen = computed(() => Boolean(activeAsk.value && !questionDismissed.value))
+const currentQuestion = computed(() => activeAsk.value?.questions[questionIndex.value])
+const currentQuestionReady = computed(() => activeAsk.value && questionReady(activeAsk.value, questionIndex.value))
+
+function questionReady(m, index) {
+  const q = m.questions[index]
+  const answer = m.answers[index]
+  if (q.type === 'single') return Boolean(answer.value)
+  if (q.type === 'multi') return answer.picked.length > 0
+  return Boolean(answer.draft.trim())
+}
 function askGroupReady(m) {
-  return m.questions.every((q, index) => {
-    const answer = m.answers[index]
-    if (q.type === 'single') return Boolean(answer.value)
-    if (q.type === 'multi') return answer.picked.length > 0
-    return Boolean(answer.draft.trim())
-  })
+  return m.questions.every((_, index) => questionReady(m, index))
+}
+function focusQuestion() {
+  nextTick(() => questionTitleRef.value?.focus({ preventScroll: true }))
+}
+function moveQuestion(delta) {
+  if (!activeAsk.value || busy.value || (delta > 0 && !currentQuestionReady.value)) return
+  questionIndex.value = Math.max(0, Math.min(activeAsk.value.questions.length - 1, questionIndex.value + delta))
+  focusQuestion()
+}
+function continueQuestion() {
+  if (!currentQuestionReady.value || busy.value) return
+  if (questionIndex.value < activeAsk.value.questions.length - 1) moveQuestion(1)
+  else submitAskGroup(activeAsk.value)
+}
+function dismissQuestionDock() {
+  questionDismissed.value = true
+  nextTick(focusComposer)
+}
+function openQuestionDock() {
+  questionDismissed.value = false
+  focusQuestion()
 }
 
 function syncAskCollapse(m, value) {
@@ -1370,6 +1410,8 @@ function onBack() {
 
 <style scoped>
 .ac-page {
+  --ac-composer-border: rgba(211, 215, 222, 0.9);
+  --ac-composer-radius: 24px;
   --ac-header-height: 68px;
   height: 100vh;
   height: 100dvh;
@@ -3809,7 +3851,7 @@ function onBack() {
 
 /* Default composer surface: neutral border and a soft gray shadow. */
 .ac-chat.hero .ac-composer-box {
-  border: 1px solid rgba(211, 215, 222, 0.9);
+  border: 1px solid var(--ac-composer-border);
   background: linear-gradient(
     112deg,
     rgba(255, 255, 255, 0.62) 0%,
@@ -4054,7 +4096,7 @@ function onBack() {
 
 .ac-chat:not(.hero) .ac-composer-box {
   padding: 1px;
-  border: 1px solid rgba(211, 215, 222, 0.9);
+  border: 1px solid var(--ac-composer-border);
   border-radius: 26px;
   background: linear-gradient(
     112deg,
@@ -4271,8 +4313,8 @@ function onBack() {
 
 .ac-chat.hero .ac-composer-box,
 .ac-chat:not(.hero) .ac-composer-box {
-  border: 1px solid rgba(211, 215, 222, 0.9);
-  border-radius: 24px;
+  border: 1px solid var(--ac-composer-border);
+  border-radius: var(--ac-composer-radius);
   background: linear-gradient(
     112deg,
     rgba(255, 255, 255, 0.62) 0%,
@@ -5181,5 +5223,120 @@ function onBack() {
   .ac-hero-group .ac-hero-cards {
     grid-template-columns: 1fr;
   }
+}
+
+/* 补充问题替代底部 composer，消息区由 flex 自动让出卡片高度。 */
+.ac-question-status {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+  color: var(--text-3);
+  font-size: 14px;
+  line-height: 24px;
+}
+.ac-question-dock {
+  order: 2;
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-height: min(50dvh, 420px);
+  width: 100%;
+  margin-block: var(--spacing-lg) var(--spacing-xl);
+  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-lg);
+  border: 1px solid var(--ac-composer-border);
+  border-radius: var(--ac-composer-radius);
+  background: var(--fill-1);
+  box-shadow: var(--shadow-lg);
+}
+.ac-question-dock-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+.ac-question-dock-head h2 {
+  margin: var(--spacing-xs) 0 0;
+  color: var(--text-1);
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  line-height: 24px;
+}
+.ac-question-dock-head h2:focus-visible {
+  outline: 2px solid var(--brand-5);
+  outline-offset: var(--spacing-xs);
+  border-radius: var(--radius-xs);
+}
+.ac-question-dock-head > .el-button {
+  margin-right: calc(-1 * var(--spacing-sm));
+}
+.ac-question-dock-head > .el-button:hover {
+  background: var(--fill-2);
+  color: var(--text-1);
+}
+.ac-question-dock-head > .el-button:active {
+  background: var(--border-2);
+}
+.ac-question-dock-head > .el-button:focus-visible {
+  outline: 2px solid var(--brand-5);
+  outline-offset: 2px;
+}
+.ac-question-dock-fields :deep(.el-textarea__inner:focus) {
+  box-shadow: 0 0 0 1px var(--brand-1) inset;
+}
+.ac-question-kind { color: var(--text-3); font-weight: var(--font-weight-regular); }
+.ac-question-dock-scroll { min-height: 0; flex: 1 1 auto; }
+.ac-question-dock-fields { padding: 0; }
+.ac-question-hint { margin: 0 0 var(--spacing-sm); color: var(--text-3); font-size: 13px; }
+.ac-question-dock-fields :deep(.el-radio-group),
+.ac-question-dock-fields :deep(.el-checkbox-group) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--spacing-xs);
+}
+.ac-question-dock-fields :deep(.el-radio),
+.ac-question-dock-fields :deep(.el-checkbox) {
+  margin-right: 0;
+  height: auto;
+  min-height: 32px;
+  max-width: 100%;
+}
+.ac-question-dock-fields :deep(.el-radio__label),
+.ac-question-dock-fields :deep(.el-checkbox__label) { white-space: normal; line-height: 24px; }
+.ac-question-dock-footer {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
+}
+.ac-question-pagination { display: flex; align-items: center; gap: var(--spacing-xs); color: var(--text-3); font-size: 13px; }
+.ac-question-pagination .el-button + .el-button { margin-left: 0; }
+.ac-question-dock-footer .el-button--primary {
+  border: 0;
+}
+.ac-question-pagination .el-button:not(:disabled):hover {
+  background: var(--fill-2);
+  color: var(--text-1);
+}
+.ac-question-pagination .el-button:not(:disabled):active {
+  background: var(--border-2);
+}
+.ac-question-pagination .el-button:focus-visible {
+  outline: 2px solid var(--brand-5);
+  outline-offset: 2px;
+}
+
+.ac-body.single.question-active .ac-stream.el-scrollbar :deep(.el-scrollbar__bar.is-vertical) {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+@media (max-width: 640px) {
+  .ac-question-dock { margin-bottom: var(--spacing-lg); padding: var(--spacing-sm) var(--spacing-md) var(--spacing-md); max-height: 55dvh; }
 }
 </style>
