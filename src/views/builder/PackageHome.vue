@@ -372,15 +372,15 @@
         <el-form-item label="图标">
           <div class="icon-grid">
             <el-button
-              v-for="ic in PRESET_ICONS"
+              v-for="ic in APP_ICON_PRESETS"
               :key="ic.id"
               class="icon-cell"
-              :style="{ '--icon-color': ic.color }"
               :class="{ active: renameDialog.iconPresetId === ic.id }"
-              :aria-label="`选择${ic.id}图标`"
+              :aria-pressed="renameDialog.iconPresetId === ic.id"
+              :aria-label="`选择${ic.label}图标`"
               @click="renameDialog.iconPresetId = ic.id"
             >
-              <component :is="ic.icon" :size="20" color="#fff" aria-hidden="true" />
+              <PresetIcon :preset="ic" :size="20" />
             </el-button>
           </div>
         </el-form-item>
@@ -511,7 +511,7 @@
     <el-dialog
       v-model="setupDialog.show"
       title="应用包基础信息"
-      width="480px"
+      width="600px"
       append-to-body
       :close-on-click-modal="setupDialog.mode === 'edit'"
       :close-on-press-escape="setupDialog.mode === 'edit'"
@@ -530,14 +530,15 @@
             />
           </el-form-item>
           <el-form-item label="图标">
-            <div class="icon-grid setup-icon-grid">
+            <div class="package-icon-grid">
               <el-button
-                v-for="ic in PRESET_ICONS"
+                v-for="ic in PACKAGE_ICON_PRESETS"
                 :key="ic.id"
-                class="icon-cell"
-                :style="{ '--icon-color': ic.color }"
+                class="package-icon-cell"
+                :style="{ '--package-preset-color': ic.color }"
                 :class="{ active: !setupForm.icon.custom && setupForm.icon.presetId === ic.id }"
-                :aria-label="`选择${ic.id}图标`"
+                :aria-pressed="!setupForm.icon.custom && setupForm.icon.presetId === ic.id"
+                :aria-label="`选择应用包${ic.id}图标`"
                 @click="pickSetupPreset(ic.id)"
               >
                 <component :is="ic.icon" :size="20" color="#fff" aria-hidden="true" />
@@ -627,7 +628,11 @@ import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref } from 'v
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { RiAddLine, RiCloseLine, RiLogoutBoxRLine, RiSortAsc } from '@remixicon/vue'
-import { ENGINE_MAP, PRESET_ICONS, PERM_GROUP_NAMES, PERM_GROUP_REQUIRED } from '@/mock/pkgSeed'
+import { ENGINE_MAP, PERM_GROUP_NAMES, PERM_GROUP_REQUIRED } from '@/mock/pkgSeed'
+import { APP_ICON_PRESETS } from '@/components/icons/appIconPresets'
+import { PACKAGE_ICON_PRESETS } from '@/components/icons/packageIconPresets'
+import PresetIcon from '@/components/icons/PresetIcon.vue'
+import { getAppIconPreset } from '@/utils/appIconPreset'
 import {
   fetchBuilderDetail,
   createPackage,
@@ -1135,7 +1140,7 @@ async function onAppCommand(cmd, app) {
       show: true,
       appId: app.id,
       name: app.name,
-      iconPresetId: app.iconPresetId || 'ic-flag'
+      iconPresetId: getAppIconPreset(app).id
     })
   } else if (cmd === 'switch-stage') {
     const toBack = app.viewMode !== 'back'
@@ -1249,7 +1254,7 @@ const setupNameValid = computed(() => !!setupForm.name.trim())
 function openPackageSetup() {
   setupForm.name = pkg.value.name || '未命名业务应用包'
   setupForm.desc = pkg.value.desc || ''
-  setupForm.icon = { ...(pkg.value.icon || { presetId: PRESET_ICONS[0].id, custom: null }) }
+  setupForm.icon = { ...(pkg.value.icon || { presetId: PACKAGE_ICON_PRESETS[0].id, custom: null }) }
   setupDialog.mode = 'edit'
   setupDialog.show = true
 }
@@ -1272,7 +1277,7 @@ function beforeIconUpload(file) {
   const reader = new FileReader()
   reader.onload = (e) => {
     setupForm.icon = {
-      presetId: setupForm.icon.presetId || PRESET_ICONS[0].id,
+      presetId: setupForm.icon.presetId || PACKAGE_ICON_PRESETS[0].id,
       custom: e.target.result
     }
     ElMessage.success('图标已上传')
@@ -1282,7 +1287,7 @@ function beforeIconUpload(file) {
 }
 
 function clearSetupIcon() {
-  setupForm.icon = { presetId: setupForm.icon.presetId || PRESET_ICONS[0].id, custom: null }
+  setupForm.icon = { presetId: setupForm.icon.presetId || PACKAGE_ICON_PRESETS[0].id, custom: null }
 }
 
 function openSetupUploadPicker() {
@@ -1872,6 +1877,69 @@ onBeforeUnmount(() => {
   margin-left: 0;
 }
 .icon-cell {
+  --el-button-text-color: var(--text-1);
+  --el-button-hover-text-color: var(--text-1);
+  --el-button-active-text-color: var(--text-1);
+  --el-button-bg-color: transparent;
+  --el-button-hover-bg-color: transparent;
+  --el-button-active-bg-color: transparent;
+  --el-button-border-color: transparent;
+  --el-button-hover-border-color: var(--brand-1);
+  --el-button-active-border-color: var(--brand-1);
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-1);
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+}
+.icon-cell:hover:not(.is-disabled) {
+  border-color: var(--brand-1);
+}
+.icon-cell.active,
+.icon-cell.active:hover:not(.is-disabled) {
+  --el-button-text-color: var(--brand-1);
+  --el-button-hover-text-color: var(--brand-1);
+  --el-button-active-text-color: var(--brand-1);
+  --el-button-bg-color: var(--color-primary-light);
+  --el-button-hover-bg-color: var(--color-primary-light);
+  --el-button-active-bg-color: var(--color-primary-light);
+  color: var(--brand-1);
+  background: var(--color-primary-light);
+  border-color: var(--brand-1);
+}
+.icon-cell:focus-visible {
+  outline: 1px solid var(--brand-1);
+  outline-offset: 2px;
+}
+/* 应用包图标库独立维护：恢复原有彩色底块、填充图形及交互。 */
+.package-icon-grid {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
+  padding: 16px;
+  margin-bottom: 8px;
+  box-sizing: border-box;
+  border: 1px solid var(--border-2);
+  border-radius: var(--radius-md);
+  background: var(--fill-1);
+}
+.package-icon-grid .package-icon-cell + .package-icon-cell {
+  margin-left: 0;
+}
+.package-icon-cell {
   width: 32px;
   height: 32px;
   min-width: 32px;
@@ -1883,30 +1951,21 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: linear-gradient(135deg, var(--icon-color), color-mix(in srgb, var(--icon-color) 62%, #fff));
+  background: linear-gradient(135deg, var(--package-preset-color), color-mix(in srgb, var(--package-preset-color) 62%, #fff));
   cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    filter 0.15s ease,
-    transform 0.15s ease;
+  transition: border-color 0.15s ease, filter 0.15s ease, transform 0.15s ease;
 }
-.icon-cell:hover {
-  border-color: var(--icon-color);
+.package-icon-cell:hover {
+  border-color: var(--package-preset-color);
   filter: saturate(1.08) brightness(1.04);
 }
-.icon-cell.active {
+.package-icon-cell.active {
   outline: 1.5px solid var(--brand-1);
   outline-offset: 1px;
 }
-/* 基础信息弹窗：推荐图标与上传区的间距 */
-.setup-icon-grid {
-  margin-bottom: 8px;
-}
-.setup-icon-grid .icon-cell {
-  width: 36px;
-  height: 36px;
-  min-width: 36px;
-  min-height: 36px;
+.package-icon-cell:focus-visible {
+  outline: 2px solid var(--brand-1);
+  outline-offset: 2px;
 }
 .setup-upload {
   display: block;
@@ -2187,8 +2246,9 @@ onBeforeUnmount(() => {
   box-shadow: var(--shadow-3);
 }
 .ph-dialog--rename {
+  box-sizing: border-box;
   height: auto;
-  max-height: calc(100vh - 32px);
+  max-height: min(600px, calc(100dvh - 32px));
 }
 .ph-dialog .el-dialog__header {
   margin: 0;

@@ -18,18 +18,11 @@
     @drop.prevent="onDrop"
   >
     <!-- 排序态整行可拖拽；选中时图标与文字同时使用主题色。 -->
-    <AppIcon
-      v-if="app.menuIcon"
+    <PresetIcon
       class="app-icon"
-      :name="app.menuIcon"
+      :preset="appIcon"
       :size="16"
       :style="{ color: selected ? 'var(--brand-1)' : 'var(--text-1)' }"
-    />
-    <EngineIcon
-      v-else
-      class="app-icon"
-      :engine="app.engine"
-      :color="selected ? 'var(--brand-1)' : 'var(--text-1)'"
     />
     <AppTooltip :content="app.name" placement="right" only-when-overflow>
       <span class="app-name">
@@ -79,7 +72,8 @@
 <script setup>
 import { computed, ref } from 'vue'
 import { BACKEND_CONVERTIBLE } from '@/mock/pkgSeed'
-import EngineIcon from '@/components/icons/EngineIcon.vue'
+import PresetIcon from '@/components/icons/PresetIcon.vue'
+import { getAppIconPreset } from '@/utils/appIconPreset'
 import { RiMore2Line } from '@remixicon/vue'
 import { builderAppRowPadding } from '@/utils/builderMenuIndent'
 
@@ -97,6 +91,8 @@ const props = defineProps({
   dragCtx: { type: Object, default: () => ({ type: '', id: '' }) },
   readonly: { type: Boolean, default: false }
 })
+const appIcon = computed(() => getAppIconPreset(props.app))
+
 const emit = defineEmits(['select', 'command', 'drag-start', 'drag-end', 'drop-app'])
 
 const convertible = computed(() => BACKEND_CONVERTIBLE.includes(props.app.engine))

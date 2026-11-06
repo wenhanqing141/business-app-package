@@ -11,7 +11,7 @@
     </header>
 
     <el-scrollbar class="ac-main-scroll" :class="{ 'is-home': isHero }" always>
-    <!-- ============ 主体：阶段 0～2 单栏居中；蓝图生成后转两栏 ============ -->
+    <!-- ============ 主体：阶段 0～2 单栏居中；搭建计划生成后转两栏 ============ -->
     <div
       ref="bodyRef"
       class="ac-body"
@@ -36,7 +36,17 @@
           <div v-if="isHero" class="ac-hero-group">
             <div class="ac-hero-top">
               <div class="ac-hero-logo">
+                <img
+                  v-show="!liquidOrbReady"
+                  class="ac-fluid-orb"
+                  :src="liquidOrbPoster"
+                  alt=""
+                  aria-hidden="true"
+                  fetchpriority="high"
+                />
                 <iframe
+                  ref="liquidOrbFrame"
+                  :class="{ 'is-ready': liquidOrbReady }"
                   class="ac-fluid-orb"
                   :src="liquidOrbSrc"
                   title="动态流体球"
@@ -50,24 +60,6 @@
               <p class="ac-hero-subtitle">从业务目标开始，AI 会帮你梳理流程、角色和应用</p>
             </div>
 
-            <!-- 初始态：示例引导卡片与标题说明组成同一视觉区块 -->
-            <div class="ac-hero-cards">
-              <SuggestionByIndexProvider
-                v-for="(s, index) in AI_SUGGESTIONS"
-                :key="s.title"
-                :index="index"
-              >
-                <SuggestionPrimitiveTrigger :class="['ac-hero-card', s.tone]" send>
-                  <span class="ac-hero-card-head">
-                    <span class="ac-hero-card-icon" :class="s.tone">
-                      <AppIcon :name="s.icon" :size="16" />
-                    </span>
-                    <span class="ac-hero-card-title"><SuggestionPrimitiveTitle /></span>
-                  </span>
-                  <span class="ac-hero-card-desc"><SuggestionPrimitiveDescription /></span>
-                </SuggestionPrimitiveTrigger>
-              </SuggestionByIndexProvider>
-            </div>
           </div>
 
           <!-- 2026-10-11：顶部的 5 阶段步骤条已去掉（PRD v2.9 模块三）——创建过程仍为 5 阶段，但不再在页面顶部展示流程指示器 -->
@@ -175,10 +167,10 @@
                 </el-collapse-item>
               </el-collapse>
 
-              <!-- ③ 蓝图确认卡片（本流程唯一一次确认，内联非弹窗） -->
+              <!-- ③ 搭建计划确认卡片（本流程唯一一次确认，内联非弹窗） -->
               <div v-else-if="m.type === 'confirm'" class="ac-card confirm" :class="[m.status]">
                 <div class="ac-card-head">
-                  <span class="ac-confirm-title">业务系统蓝图</span>
+                  <span class="ac-confirm-title">搭建计划</span>
                   <el-tag v-if="m.status === 'confirmed'" size="small" type="success"
                     >已确认</el-tag
                   >
@@ -202,7 +194,7 @@
                     text
                     circle
                     :aria-expanded="!m.collapsed"
-                    :aria-label="m.collapsed ? '展开蓝图详情' : '收起蓝图详情'"
+                    :aria-label="m.collapsed ? '展开搭建计划详情' : '收起搭建计划详情'"
                     @click="m.collapsed = !m.collapsed"
                   >
                     <RiArrowDownSLine class="ac-fold-icon" :class="{ open: !m.collapsed }" />
@@ -224,16 +216,16 @@
                     </ul>
                   </div>
 
-                  <!-- 按钮只在最新一轮蓝图卡片下显示 -->
+                  <!-- 按钮只在最新一轮搭建计划卡片下显示 -->
                   <div
                     v-if="isActiveBp(m)"
                     class="ac-card-actions ac-blueprint-actions ac-complete-actions"
                   >
                     <el-button type="primary" @click="startBuild(m)">开始搭建</el-button>
-                    <el-button text @click="focusRevise">调整蓝图</el-button>
+                    <el-button text @click="focusRevise">调整搭建计划</el-button>
                   </div>
                   <p v-else class="ac-card-foot">
-                    本轮蓝图已被后续调整取代，按钮不再提供——请在最下方的蓝图卡片上操作。
+                    本轮搭建计划已被后续调整取代，按钮不再提供——请在最下方的搭建计划卡片上操作。
                   </p>
                 </div>
               </div>
@@ -261,7 +253,7 @@
 
                 <div v-show="!m.collapsed">
                   <p class="ac-card-text">
-                    按蓝图逐个生成应用并自动发布。暂不支持自动创建的应用已计入待完成任务，由人工处理。
+                    按搭建计划逐个生成应用并自动发布。暂不支持自动创建的应用已计入待完成任务，由人工处理。
                   </p>
                   <div class="ac-progress">
                     <BaseTable
@@ -345,7 +337,7 @@
                   </div>
 
                   <div class="ac-card-actions ac-complete-actions">
-                    <el-button type="primary" @click="downloadBlueprintDoc">下载业务系统蓝图</el-button>
+                    <el-button type="primary" @click="downloadBlueprintDoc">下载搭建计划</el-button>
                     <el-button text @click="jumpToSystem">跳转业务系统</el-button>
                   </div>
 
@@ -405,7 +397,7 @@
                 </el-button>
               </div>
               <el-button type="primary" :disabled="!currentQuestionReady" :loading="busy" @click="continueQuestion">
-                {{ questionIndex === activeAsk.questions.length - 1 ? '生成业务蓝图' : '继续' }}
+                {{ questionIndex === activeAsk.questions.length - 1 ? '生成搭建计划' : '继续' }}
               </el-button>
             </div>
           </section>
@@ -543,10 +535,10 @@
         <div class="ac-splitter" :class="{ active: dragging }" @mousedown.prevent="onSplitDown" />
       </AppTooltip>
 
-      <!-- ---------------- 右栏：蓝图 / 业务搭建 ---------------- -->
+      <!-- ---------------- 右栏：搭建计划 / 业务搭建 ---------------- -->
       <aside v-if="twoColumn" class="ac-preview" :style="{ width: rightWidth + 'px' }">
         <el-tabs v-model="previewTab" class="ac-tabs">
-          <el-tab-pane label="蓝图" name="blueprint">
+          <el-tab-pane label="搭建计划" name="blueprint">
             <el-scrollbar class="ac-pane ac-pane-blueprint" always>
               <BlueprintReview :content="blueprintMd" @comment="submitBlueprintComment" />
             </el-scrollbar>
@@ -594,7 +586,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import aiBuildEmptyImage from '@/assets/ai-build-empty.png'
@@ -624,11 +616,7 @@ import {
 import {
   AuiConfig,
   AuiProvider,
-  ComposerPrimitiveInput,
-  SuggestionByIndexProvider,
-  SuggestionPrimitiveDescription,
-  SuggestionPrimitiveTitle,
-  SuggestionPrimitiveTrigger
+  ComposerPrimitiveInput
 } from '@assistant-ui/vue'
 import { RuntimeAdapter } from '@assistant-ui/core/store'
 import { createPackageFromAi } from '@/api/aiCreate'
@@ -644,7 +632,6 @@ import {
   AI_QUESTIONS,
   AI_SCENE,
   AI_SKILLS,
-  AI_SUGGESTIONS,
   BLUEPRINT_DOC_MD,
   BLUEPRINT_DOC_NAME,
   BLUEPRINT_META,
@@ -657,8 +644,18 @@ import {
 
 const router = useRouter()
 const liquidOrbSrc = `${import.meta.env.BASE_URL}liquid-orb.html`
+const liquidOrbPoster = `${import.meta.env.BASE_URL}liquid-orb-poster.png`
+const liquidOrbFrame = ref(null)
+const liquidOrbReady = ref(false)
+function onLiquidOrbMessage(event) {
+  if (event.origin !== window.location.origin || event.source !== liquidOrbFrame.value?.contentWindow) return
+  if (event.data?.type === 'liquid-orb-ready') liquidOrbReady.value = true
+  if (event.data?.type === 'liquid-orb-error') liquidOrbReady.value = false
+}
+onMounted(() => window.addEventListener('message', onLiquidOrbMessage))
+onBeforeUnmount(() => window.removeEventListener('message', onLiquidOrbMessage))
 
-// 创建流程仍为 5 阶段（需求描述 / 业务分析 / 业务系统蓝图 / 应用包生成 / 搭建完成），
+// 创建流程仍为 5 阶段（需求描述 / 业务分析 / 搭建计划 / 应用包生成 / 搭建完成），
 // 但 2026-10-11 起**不再在页面顶部展示步骤条**（原 5 节点流程指示器已去掉）：
 // 阶段状态由 phase / bpMode / genMode 驱动页面与卡片，不再有独立的 stages 状态。
 const GEN_STATUS_TEXT = {
@@ -675,7 +672,7 @@ const messages = ref([])
 // 会话态：粗粒度 phase 驱动步骤条与布局，细分状态各用一个 ref
 // phase: idle | intake | analysis | blueprint | generating | done
 const phase = ref('idle')
-// bpMode: generating（重新生成中）| waiting（等待确认）| revising（点过调整蓝图）| confirmed
+// bpMode: generating（重新生成中）| waiting（等待确认）| revising（点过调整搭建计划）| confirmed
 const bpMode = ref('waiting')
 // genMode: apps（逐个生成）| package（创建业务应用包）| done
 // 异常项（生成失败 / 未发布）一律不提供重试：计入待完成任务文档由人工处理，不阻塞队列与创建
@@ -691,8 +688,9 @@ const files = ref([])
 const highlightInput = ref(false)
 const atBottom = ref(true)
 
-// 初始态（hero）：logo + 问候语 + 大输入框 + 示例卡片；发出第一条需求后转为对话布局
+// 初始态（hero）：logo + 问候语 + 大输入框；发出第一条需求后转为对话布局
 const isHero = computed(() => phase.value === 'idle')
+watch(isHero, () => { liquidOrbReady.value = false })
 const logoFailed = ref(false)
 
 // 输入框内「技能」选择器（Demo 演示用；PRD 模块三未定义该控件）
@@ -792,7 +790,7 @@ function scrollToBottom() {
 // ============================================================
 // 布局：单栏居中 ↔ 两栏（含分割线拖拽）
 // ============================================================
-// 用蓝图是否已产出来决定布局，而不是用 phase——避免「已转两栏但右栏空一帧」的闪烁
+// 用搭建计划是否已产出来决定布局，而不是用 phase——避免「已转两栏但右栏空一帧」的闪烁
 const twoColumn = computed(() => !!blueprintMd.value)
 
 const MIN_LEFT = 480
@@ -833,7 +831,7 @@ function onSplitDown(e) {
 
 // 拖拽中卸载页面时兜底移除监听，避免泄漏（统一在下方 onBeforeUnmount 处理）
 
-/** 首次进入两栏时对话面板按最小宽度展示，剩余空间交给右侧蓝图面板。 */
+/** 首次进入两栏时对话面板按最小宽度展示，剩余空间交给右侧搭建计划面板。 */
 function splitEven() {
   const el = bodyRef.value
   if (!el) return
@@ -896,8 +894,8 @@ const placeholder = computed(() => {
   if (phase.value === 'analysis') return '输入整体答复，或点击「继续回答」逐题补充'
   if (phase.value === 'blueprint') {
     if (bpMode.value === 'revising')
-      return '继续输入修改意见，AI 会据此调整蓝图（如：去掉设备巡检，增加一个报销表单）'
-    return '可直接输入修改意见调整蓝图；点「调整蓝图」会把光标聚焦到这里'
+      return '继续输入修改意见，AI 会据此调整搭建计划（如：去掉设备巡检，增加一个报销表单）'
+    return '可直接输入修改意见调整搭建计划；点「调整搭建计划」会把光标聚焦到这里'
   }
   if (phase.value === 'generating') return '正在生成应用与业务应用包，无需操作…'
   if (phase.value === 'done')
@@ -908,15 +906,9 @@ const placeholder = computed(() => {
 const assistantSubmit = ref(() => {})
 const composerBridge = createAssistantComposerRuntime({
   onNew: (text) => assistantSubmit.value(text),
-  suggestions: AI_SUGGESTIONS.map((s) => ({
-    title: s.title,
-    label: s.desc,
-    prompt: s.prompt
-  })),
   getState: () => ({
     isDisabled: !inputEnabled.value,
-    // assistant-ui also uses this flag for the hero suggestion triggers;
-    // the visible send button applies the stricter content check below.
+    // The visible send button also checks whether the composer has content.
     isSendDisabled: !inputEnabled.value
   })
 })
@@ -1027,7 +1019,7 @@ function onSend(text = '') {
   if (!inputEnabled.value) return
   if (phase.value === 'idle') return startCreate(normalizedText)
   if (phase.value === 'analysis') return answerAskByText(normalizedText)
-  // 等待确认期间的输入一律按「修改蓝图」处理，与点「调整蓝图」等价
+  // 等待确认期间的输入一律按「修改搭建计划」处理，与点「调整搭建计划」等价
   if (phase.value === 'blueprint') return reviseBlueprint(normalizedText)
 }
 
@@ -1037,16 +1029,11 @@ function answerAskByText(text) {
   submitAskGroup(m, text)
 }
 
-function pickSuggestion(s) {
-  if (phase.value !== 'idle') return
-  onSend(s.prompt)
-}
-
 function focusComposer() {
   document.querySelector('.ac-composer-input')?.focus()
 }
 
-/** 点「调整蓝图」：聚焦并高亮输入框，方便继续对话修改。 */
+/** 点「调整搭建计划」：聚焦并高亮输入框，方便继续对话修改。 */
 function focusRevise() {
   if (phase.value !== 'blueprint' || bpMode.value === 'confirmed') return
   bpMode.value = 'revising'
@@ -1056,7 +1043,7 @@ function focusRevise() {
 
 function submitBlueprintComment({ section, text }) {
   if (phase.value !== 'blueprint' || bpMode.value === 'confirmed' || busy.value) return
-  reviseBlueprint(`针对蓝图「${section}」的修改意见：${text}`)
+  reviseBlueprint(`针对搭建计划「${section}」的修改意见：${text}`)
 }
 
 // ============================================================
@@ -1080,8 +1067,8 @@ async function startCreate(text) {
     text: '已调用「业务分析 skill」',
     sub:
       `调用方式：${analysisSkillNote.value}。` +
-      '按 references/comparison-checklist.md 的字段清单与《业务系统蓝图模板》逐项比对，' +
-      '请在下方逐项补充关键信息，完成后将生成业务蓝图。'
+      '按 references/comparison-checklist.md 的字段清单与《搭建计划模板》逐项比对，' +
+      '请在下方逐项补充关键信息，完成后将生成搭建计划。'
   })
   await sleep(500)
   pushAsk()
@@ -1194,7 +1181,7 @@ async function submitAskGroup(m, freeform = '') {
 }
 
 // ============================================================
-// 阶段 3 业务系统蓝图（生成 → 调整 → 确认，唯一一次确认）
+// 阶段 3 搭建计划（生成 → 调整 → 确认，唯一一次确认）
 // ============================================================
 async function runToBlueprint() {
   phase.value = 'blueprint'
@@ -1203,7 +1190,7 @@ async function runToBlueprint() {
   await sleep(1100)
   blueprintMd.value = buildBlueprintMd()
   previewTab.value = 'blueprint'
-  push({ role: 'ai', type: 'text', text: '业务系统蓝图已生成，请在右侧「蓝图」Tab 查看。' })
+  push({ role: 'ai', type: 'text', text: '搭建计划已生成，请在右侧「搭建计划」Tab 查看。' })
   await sleep(220)
   pushConfirmCard()
 }
@@ -1221,7 +1208,7 @@ function pushConfirmCard() {
   busy.value = false
 }
 
-/** 按钮只在最新一轮蓝图卡片下显示 */
+/** 按钮只在最新一轮搭建计划卡片下显示 */
 const isActiveBp = (m) => m.id === activeBpCardId.value && m.status === 'waiting'
 
 function startBuild(m) {
@@ -1245,13 +1232,13 @@ async function reviseBlueprint(text) {
 
   revisions.value.push(text)
   await sleep(1100)
-  // 每轮修改直接覆盖为最新蓝图：仅保留最新版，不提供版本切换
+  // 每轮修改直接覆盖为最新搭建计划：仅保留最新版，不提供版本切换
   blueprintMd.value = buildBlueprintMd({ revisions: revisions.value.slice() })
   previewTab.value = 'blueprint'
   push({
     role: 'ai',
     type: 'text',
-    text: '已按你的意见更新蓝图（仅保留最新版，不支持版本切换），请在右侧「蓝图」Tab 查看。'
+    text: '已按你的意见更新搭建计划（仅保留最新版，不支持版本切换），请在右侧「搭建计划」Tab 查看。'
   })
   await sleep(220)
   pushConfirmCard()
@@ -1371,7 +1358,7 @@ function triggerDownload(href, name) {
   a.remove()
 }
 
-/** 下载《业务系统蓝图》（第 13 节按本次实际生成结果回填，即待完成任务清单） */
+/** 下载《搭建计划》（第 13 节按本次实际生成结果回填，即待完成任务清单） */
 function downloadBlueprintDoc() {
   const name = `${BLUEPRINT_DOC_NAME}.md`
   try {
@@ -1909,7 +1896,7 @@ function onBack() {
   margin-left: 0;
 }
 
-/* 需求接入 / 追问 / 蓝图确认 / 完成 卡片的差异 */
+/* 需求接入 / 追问 / 搭建计划确认 / 完成 卡片的差异 */
 .ac-card.skill {
   background: var(--brand-8);
   border-color: var(--brand-7);
@@ -2133,7 +2120,7 @@ function onBack() {
 .ac-composer-inner :deep(.el-textarea__inner::placeholder) {
   color: var(--icon-1);
 }
-/* 点「调整蓝图」后的高亮提示 */
+/* 点「调整搭建计划」后的高亮提示 */
 .ac-composer.is-highlight .ac-composer-box {
   box-shadow: 0 0 0 4px rgba(0, 71, 255, 0.12);
 }
@@ -3647,15 +3634,18 @@ function onBack() {
   display: none;
 }
 
-/* The supplied WebGPU renderer replaces the hero image without changing the page background. */
+/* Show the original first frame while the WebGPU renderer initializes. */
 .ac-hero-logo {
+  position: relative;
   border: 0;
   background: transparent;
   box-shadow: none;
   overflow: visible;
 }
 
-.ac-hero-logo iframe.ac-fluid-orb {
+.ac-hero-logo .ac-fluid-orb {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -3666,6 +3656,9 @@ function onBack() {
   filter: none;
   transform: translateY(-4px) scale(1.2);
 }
+
+.ac-hero-logo iframe.ac-fluid-orb { opacity: 0; }
+.ac-hero-logo iframe.ac-fluid-orb.is-ready { opacity: 1; }
 
 /* 示例卡片：参考原型采用「图标 → 标题 → 说明」的纵向信息层级。 */
 .ac-hero-card {
@@ -3816,7 +3809,7 @@ function onBack() {
   transform: none;
 }
 
-/* Hero hierarchy: title, subtitle, and examples form one block above the composer. */
+/* Hero hierarchy: title and subtitle form one block above the composer. */
 .ac-chat.hero {
   gap: 64px;
 }
@@ -4254,12 +4247,12 @@ function onBack() {
   background: var(--fill-1);
 }
 
-/* 双栏蓝图区紧贴页面头部，去掉容器顶部的额外留白。 */
+/* 双栏搭建计划区紧贴页面头部，去掉容器顶部的额外留白。 */
 .ac-body.two-col {
   padding-top: 0;
 }
 
-/* 双栏状态下，左侧对话面板使用与右侧蓝图面板相同的描边色。 */
+/* 双栏状态下，左侧对话面板使用与右侧搭建计划面板相同的描边色。 */
 .ac-body.two-col .ac-chat {
   border-color: var(--border-2);
 }
@@ -4296,7 +4289,7 @@ function onBack() {
   margin: 0;
 }
 
-/* 标题、场景卡片和输入区作为一个完整内容块居中。 */
+/* 标题与输入区作为一个完整内容块居中。 */
 .ac-body.single .ac-chat.hero {
   max-height: none;
   padding: 0;
@@ -4327,14 +4320,14 @@ function onBack() {
   backdrop-filter: blur(22px) saturate(130%);
 }
 
-/* 蓝图态与单栏对话态沿用既有输入区内边距。 */
+/* 搭建计划态与单栏对话态沿用既有输入区内边距。 */
 .ac-body.two-col.blueprint-open .ac-chat:not(.hero) .ac-composer,
 .ac-body.single.conversation-state .ac-chat:not(.hero) .ac-composer {
   margin: 0;
   padding: 0 24px 24px;
 }
 
-/* 蓝图页对话流底部只保留滚动内容的 24px 内边距，不产生外部下边距。 */
+/* 搭建计划页对话流底部只保留滚动内容的 24px 内边距，不产生外部下边距。 */
 .ac-body.two-col.blueprint-open .ac-chat:not(.hero) .ac-stream {
   flex: 0 1 auto;
   padding: 0;
@@ -4891,7 +4884,7 @@ function onBack() {
   line-height: 1.5;
 }
 
-/* 蓝图确认卡：标题层级提升，折叠按钮紧随确认状态标签。 */
+/* 搭建计划确认卡：标题层级提升，折叠按钮紧随确认状态标签。 */
 .ac-chat:not(.hero) .ac-card.confirm .ac-confirm-title {
   font-size: 16px;
 }
@@ -5115,7 +5108,7 @@ function onBack() {
   transform: none;
 }
 
-/* 蓝图尚未生成时仍是单栏，输入区与对话内容等宽，不保留左右外部间距。 */
+/* 搭建计划尚未生成时仍是单栏，输入区与对话内容等宽，不保留左右外部间距。 */
 .ac-body.single.intake-state .ac-chat:not(.hero) .ac-composer,
 .ac-body.single.analysis-state .ac-chat:not(.hero) .ac-composer,
 .ac-body.single.blueprint-open .ac-chat:not(.hero) .ac-composer {
@@ -5123,7 +5116,7 @@ function onBack() {
   padding-right: 0;
 }
 
-/* 蓝图调整中的处理态同样使用全宽输入区，正常蓝图态不受影响。 */
+/* 搭建计划调整中的处理态同样使用全宽输入区，正常搭建计划态不受影响。 */
 .ac-body.two-col.blueprint-open.processing-state .ac-chat:not(.hero) .ac-composer {
   padding-left: 0;
   padding-right: 0;

@@ -17,7 +17,7 @@
 
 <script setup>
 import { computed } from 'vue'
-import { PRESET_ICONS } from '@/mock/pkgSeed'
+import { PACKAGE_ICON_PRESETS } from './packageIconPresets'
 
 const props = defineProps({
   icon: { type: Object, default: () => ({}) },
@@ -25,7 +25,7 @@ const props = defineProps({
 })
 
 const preset = computed(
-  () => PRESET_ICONS.find((candidate) => candidate.id === props.icon?.presetId) || PRESET_ICONS[0]
+  () => PACKAGE_ICON_PRESETS.find((candidate) => candidate.id === props.icon?.presetId) || PACKAGE_ICON_PRESETS[0]
 )
 const glyphSize = computed(() => Math.round(props.size * 0.58))
 </script>

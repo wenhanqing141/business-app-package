@@ -37,3 +37,9 @@
 - 所有悬停文字提示必须使用全局 `AppTooltip` 组件。该组件基于 Element Plus `el-tooltip`，统一维护 10px 圆角和 300ms 显示延时。
 - 不要为悬停提示直接使用 `el-tooltip` 或原生 `title`。`title` 仅可用于对话框、页面、iframe 等非悬停提示的业务标题。
 - 截断文本必须使用 `AppTooltip` 的 `only-when-overflow` 属性：文本未发生截断时禁止显示提示；图标按钮等操作说明不使用该属性，始终展示提示。
+
+## 应用包与应用导航图标库隔离
+
+- 应用包基础信息、新建应用包及应用包标识使用 `src/components/icons/packageIconPresets.js` 的 `PACKAGE_ICON_PRESETS`，保留原有彩色底块与填充图标。
+- 应用的「修改名称和图标」及左侧应用导航使用 `src/components/icons/appIconPresets.js` 的 `APP_ICON_PRESETS`，保留独立的线性图标和交互样式。
+- 两套图标库不得合并为同一候选数组，选择器样式不得共用；修改其中一套时必须核对另一套未受影响。

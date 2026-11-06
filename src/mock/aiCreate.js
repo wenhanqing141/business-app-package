@@ -1,13 +1,13 @@
 // AI 创建对话页 · 脚本化演示数据（PRD《业务应用包-PRD-MVP完整版》5.1.3 模块三 v2.5）
 //
-// 说明：Demo 中「AI 分析 / 蓝图生成 / 逐个生成应用」的过程为本地脚本模拟（对话流、
+// 说明：Demo 中「AI 分析 / 搭建计划生成 / 逐个生成应用」的过程为本地脚本模拟（对话流、
 //       步骤条推进、生成进度），仅「创建业务应用包」一步走 mock 端点，保持与工程其他模块一致。
 //
-// 关键设计：蓝图 MD 由 buildBlueprintMd() 单一来源产出，右栏渲染与「下载文档」共用同一字符串；
-//          蓝图阶段与「搭建完成」阶段的差异只在第 13.1 节的状态列（规划中 / 按实际结果回填）。
+// 关键设计：搭建计划 MD 由 buildBlueprintMd() 单一来源产出，右栏渲染与「下载文档」共用同一字符串；
+//          搭建计划阶段与「搭建完成」阶段的差异只在第 13.1 节的状态列（规划中 / 按实际结果回填）。
 
 // ---------- 初始态：示例引导卡片（图标 + 标题 + 说明，点击即发送） ----------
-// Demo 的蓝图是脚本化的「校园后勤报修」系统，三张卡片都收敛到同一套蓝图，
+// Demo 的搭建计划是脚本化的「校园后勤报修」系统，三张卡片都收敛到同一套搭建计划，
 // 避免点了 A 却生成 B 的演示穿帮。
 export const AI_SUGGESTIONS = [
   {
@@ -145,11 +145,11 @@ export const AI_QUESTIONS = [
       {
         label: '需要，走审批流程',
         reply:
-          '已记入蓝图第 7 节「审批流设计」：报修单走审批流，维修派工审批 1 条（3 个节点 + 抄送报修人）。'
+          '已记入搭建计划第 7 节「审批流设计」：报修单走审批流，维修派工审批 1 条（3 个节点 + 抄送报修人）。'
       },
       {
         label: '不需要，仅登记',
-        reply: '已记入蓝图第 7 节「审批流设计」：报修单仅登记、不走审批流程。'
+        reply: '已记入搭建计划第 7 节「审批流设计」：报修单仅登记、不走审批流程。'
       }
     ]
   },
@@ -160,7 +160,7 @@ export const AI_QUESTIONS = [
     type: 'multi', // 多选
     options: ['后勤管理员', '维修人员', '报修人（师生）', '资产管理员'],
     reply: (picked) =>
-      `已记入蓝图第 1 节「主要角色」：${picked.join('、')}。` +
+      `已记入搭建计划第 1 节「主要角色」：${picked.join('、')}。` +
       '第 5 节权限设计的数据范围与第 7 节的审批人候选池按该角色清单收敛。'
   },
   {
@@ -169,17 +169,17 @@ export const AI_QUESTIONS = [
     title: '单位规模数据（用于容量设计与层级校验）',
     type: 'fill', // 补充填空
     placeholder: '其他：如楼栋 12 栋、房间 3600 间、维修人员 25 人',
-    reply: (text) => `已记入蓝图第 1 节「关键设计约束」：${text}。`
+    reply: (text) => `已记入搭建计划第 1 节「关键设计约束」：${text}。`
   }
 ]
 
-// ---------- 阶段 3：蓝图文档（成品骨架取自《业务系统蓝图模板》14 节） ----------
+// ---------- 阶段 3：搭建计划文档（成品骨架取自《搭建计划模板》14 节） ----------
 export const BLUEPRINT_META = {
   version: 'v1.0',
   date: '2026-10-10',
   author: 'AI 创建助手',
   requirement: '业务应用包',
-  // 蓝图卡片上展示的摘要
+  // 搭建计划卡片上展示的摘要
   summary:
     '把校园后勤报修做成「报修登记 → 派工审批 → 完工确认 → 数据统计」的闭环，' +
     '共3个分组、 6个应用、',
@@ -194,8 +194,8 @@ export const blueprintAppCount = countApps()
 export const blueprintFeatureCount = countFeatures()
 
 // ---------- 阶段 5：第 13.1 节「交付状态」三态表 ----------
-// 模块固定 10 行（顺序取自蓝图模板 13.2 实施顺序）；状态限 ✅ 已完成 / ⚠️ 部分完成 / ⬜ 未完成，
-// 蓝图阶段（尚未搭建）统一标「规划中」。
+// 模块固定 10 行（顺序取自搭建计划模板 13.2 实施顺序）；状态限 ✅ 已完成 / ⚠️ 部分完成 / ⬜ 未完成，
+// 搭建计划阶段（尚未搭建）统一标「规划中」。
 export const DELIVERABLE_MODULES = [
   { key: 'app', label: '应用与目录' },
   { key: 'form', label: '表单与字段' },
@@ -209,11 +209,11 @@ export const DELIVERABLE_MODULES = [
   { key: 'notify', label: '推送提醒' }
 ]
 
-/** 蓝图阶段：按「规划中」如实标注，不编造完成度 */
+/** 搭建计划阶段：按「规划中」如实标注，不编造完成度 */
 export const DELIVERABLE_PLANNED = DELIVERABLE_MODULES.map((m) => ({
   ...m,
   status: '规划中',
-  note: '待确认蓝图后由 AI 自动生成'
+  note: '待确认搭建计划后由 AI 自动生成'
 }))
 
 /** 搭建完成阶段：按本次实际生成结果逐项打勾回填 */
@@ -249,7 +249,7 @@ export const DELIVERABLE_AFTER_GEN = [
 export const countTodo = (rows = DELIVERABLE_AFTER_GEN) =>
   rows.filter((r) => r.status !== '✅ 已完成').length
 
-// ---------- 蓝图 MD 生成（单一来源：右栏渲染与「下载文档」共用） ----------
+// ---------- 搭建计划 MD 生成（单一来源：右栏渲染与「下载文档」共用） ----------
 function renderAppTable() {
   const lines = ['| 分组 | 应用 | 类型 | 是否自动创建 |', '| --- | --- | --- | --- |']
   AI_SCENE.groups.forEach((g) => {
@@ -282,7 +282,7 @@ ${table}
 ### 13.3 实施遇到的限制
 
 - 本期 AI 仅支持自动创建**表单 / 审批 / 仪表盘**三类应用；报表、报告、信息查询等其他应用不自动创建，由人工创建。
-- 蓝图第 5 节只呈现角色与权限设计，**不落真实成员与部门名单**；本期 AI 不修改具体应用的权限配置。
+- 搭建计划第 5 节只呈现角色与权限设计，**不落真实成员与部门名单**；本期 AI 不修改具体应用的权限配置。
 
 ### 13.4 需用户人工确认或准备
 
@@ -299,10 +299,10 @@ ${table}
 }
 
 /**
- * 生成蓝图 MD。
+ * 生成搭建计划 MD。
  * @param {object} opts
- * @param {Array}  opts.s13Rows   第 13.1 节的状态行；缺省为「规划中」（蓝图阶段）
- * @param {Array}  opts.revisions 本次会话的调整意见；每轮「调整蓝图」直接覆盖为最新版，
+ * @param {Array}  opts.s13Rows   第 13.1 节的状态行；缺省为「规划中」（搭建计划阶段）
+ * @param {Array}  opts.revisions 本次会话的调整意见；每轮「调整搭建计划」直接覆盖为最新版，
  *                                历史不留存——只在变更记录里体现迭代过程
  */
 export function buildBlueprintMd({ s13Rows = DELIVERABLE_PLANNED, revisions = [] } = {}) {
@@ -314,7 +314,7 @@ export function buildBlueprintMd({ s13Rows = DELIVERABLE_PLANNED, revisions = []
     ...revisions.map((r, i) => `| v1.${i + 1} | ${r} |`)
   ].join('\n')
 
-  return `# ${AI_SCENE.systemName} · 业务系统分析蓝图
+  return `# ${AI_SCENE.systemName} · 搭建计划
 
 | 项 | 内容 |
 | --- | --- |
@@ -328,7 +328,7 @@ export function buildBlueprintMd({ s13Rows = DELIVERABLE_PLANNED, revisions = []
 
 ${changeRows}
 
-> **文档定位**：本蓝图是「AI 创建业务系统」**阶段 3** 的产出，作为阶段 4 应用包生成的输入；
+> **文档定位**：本计划是「AI 创建业务系统」**阶段 3** 的产出，作为阶段 4 应用包生成的输入；
 > 应用生成完成后，第 13 节直接作为阶段 5《系统搭建待完成任务文档》，两处共用同一份内容。
 > **图例**：🤖 AI 自动生成｜❓ AI 追问补齐｜🧩 平台自动搭建｜📐 ASCII 内嵌图｜✍️ 人工确认 / 准备｜⚠️ 能力边界
 
@@ -564,11 +564,11 @@ ${renderSection13(s13Rows)}
 `
 }
 
-/** 「搭建完成」阶段下载用：即第 13.1 节按本次实际生成结果回填后的《业务系统蓝图》 */
+/** 「搭建完成」阶段下载用：即第 13.1 节按本次实际生成结果回填后的《搭建计划》 */
 export const BLUEPRINT_DOC_MD = buildBlueprintMd({ s13Rows: DELIVERABLE_AFTER_GEN })
 
-/** 下载文件名（业务系统蓝图） */
-export const BLUEPRINT_DOC_NAME = `${AI_SCENE.systemName}-业务系统蓝图`
+/** 下载文件名（搭建计划） */
+export const BLUEPRINT_DOC_NAME = `${AI_SCENE.systemName}-搭建计划`
 
 // === 端点：创建业务应用包（PRD 模块三 · 阶段 4 第二步） ===
 // 2026-10-10 复审：异常项不再提供任何重试入口，业务应用包创建失败会死锁流程，

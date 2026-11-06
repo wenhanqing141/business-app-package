@@ -77,7 +77,7 @@
             type="primary"
             circle
             :disabled="!commentDraft.trim()"
-            aria-label="提交蓝图评论"
+            aria-label="提交搭建计划评论"
             @click="submitComment"
           >
             <RiCheckLine class="review-comment-submit-icon" size="24px" />
@@ -115,7 +115,7 @@ function moduleLabel(block) {
   if (block.type === 'list') return inlineText(block.items?.[0]) || '列表'
   if (block.type === 'quote') return inlineText(block.lines?.[0]) || '说明'
   if (block.type === 'code') return '业务流程图'
-  return '蓝图模块'
+  return '搭建计划模块'
 }
 
 function selectModule(index, event) {
